@@ -2,9 +2,8 @@
 class Sts():
 
     def __init__(self, session):
-        self.session = session
+        self.client = session.client("sts")
     
-    def __get_identity(self):
-        self.identity = self.session.get_caller_identity()
-        return self.identity()
+    def whoami(self):
+        return self.client.get_caller_identity()
         

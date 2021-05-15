@@ -1,9 +1,17 @@
 #!/usr/bin/env python3
 
+# third party
 from typer import Typer, echo, Argument
 from rich.console import Console
 from boto3.session import Session
 from botocore.exceptions import ProfileNotFound
+
+# internal
+from services.sts import Sts
+from services.iam import Iam
+from services.ec2 import Ec2
+from services.s3 import S3
+from services.eks import Eks
 
 app = Typer()
 console = Console()
@@ -15,11 +23,12 @@ console = Console()
 
 def create_session(profile: str):
     try:
-        Session(profile_name=profile)
+        session = Session(profile_name=profile)
     except ProfileNotFound:
         console.print("Profile was not found.. ([red]ERROR[/red])")
         console.print("Try specifying a different profile name.. ([yellow]ACTION[/yellow])")
         exit()
+    return session
 
 
 # *********************************
@@ -38,6 +47,10 @@ def _create_admin_user(session: Session):
 def _list_perms(session: Session):
     console.print("Listing permissions attached to profile.. ([red]OK[/red])")
 
+def _whoami(session: Session):
+    iden = Sts(session).whoami()
+    del iden["ResponseMetadata"]
+    console.print(iden)
 
 # *********************************
 # *********** COMMANDS ************
@@ -84,6 +97,16 @@ def list_perms(
     """
     sess = create_session(profile)
     _list_perms(sess)
+
+@app.command()
+def whoami(
+        profile: str=Argument("default", help="AWS profile name")
+    ):
+    """
+    Get profile identity
+    """
+    sess = create_session(profile)
+    _whoami(sess)
 
 if __name__ == "__main__":
     app()
