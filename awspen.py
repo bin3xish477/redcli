@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from typer import Typer, echo, Argument
 from rich.console import Console
 from boto3.session import Session
