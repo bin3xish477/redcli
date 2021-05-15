@@ -1,15 +1,15 @@
 
 class Iam():
 
-    def __init__(self, session):
-        self.session = session
-        self.iam = self.session.resource("iam")
+    def __init__(self, session, console):
+        self.iam = session.client("iam")
+        self.console = console
         self.admin_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 
-    def __list_perms(self):
+    def get_policies(self):
         policy_name = []
         policy_arns = []
-        for user_perm in self.iam.get_account_authorization_details(Filter=["user"])["UserDetailList"]:
+        for user_perm in self.iam.get_account_authorization_details(Filter=["User"])["UserDetailList"]:
             for policy in user_perm["AttachedManagedPolicies"]:
                 policy_name.append(policy["PolicyName"])
                 policy_arns.append(policy["PolicyArn"])

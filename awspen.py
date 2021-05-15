@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 
 # third party
-from typer import Typer, echo, Argument
+from typer import Typer, echo, Argument, Option
 from rich.console import Console
+from tabulate import tabulate
 from boto3.session import Session
 from botocore.exceptions import ProfileNotFound
 
@@ -15,6 +16,7 @@ from services.eks import Eks
 
 app = Typer()
 console = Console()
+tbl_fmt = "fancy_grid"
 
 
 # *********************************
@@ -38,16 +40,27 @@ def create_session(profile: str):
 def _user_data_rev_shell(session: Session):
     console.print("Ec2::user data exploit")
 
-def _key_pair_launch_ec2(session: Session):
-    console.print("Ec2::user data exploit")
+def _launch_ec2_instance_profile(session: Session, key_name: str):
+    console.print("Running `launch-ec2-instance-profile` command.. ([bold purple]ATTENTION[/bold purple])")
+    Ec2(session, console).run_launch_ec2_instance_profile(key_name)
 
 def _create_admin_user(session: Session):
     console.print("Creating new user and adding to Administrators group")
 
+def _get_instance_profiles(session: Session):
+    console.print("Retrieving instance profiles.. ([bold green]OK[/bold green])")
+    instance_profiles = Ec2(session, console).get_instance_profiles()
+    instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
+    console.print(instance_profile_tbl)
+
 def _list_perms(session: Session):
-    console.print("Listing permissions attached to profile.. ([red]OK[/red])")
+    policies = Iam(session, console).get_policies()
+    console.print("Listing permissions attached to profile.. ([bold green]OK[/ bold green])")
+    policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
+    console.print(policy_tbl)
 
 def _whoami(session: Session):
+    console.print("Querying `get-caller-identity` API.. ([bold green]OK[/ boldgreen])")
     iden = Sts(session).whoami()
     del iden["ResponseMetadata"]
     console.print(iden)
@@ -58,8 +71,9 @@ def _whoami(session: Session):
 
 @app.command()
 def user_data_rev_shell(
-        listener_ip: str=Argument(..., help="The remote attacker's IP address"),
-        listener_port: int=Argument(..., help="The remote attacker's listening port"),
+        rhost: str=Argument(..., help="The remote attacker's IP address"),
+        rport: int=Option(7777, help="The remote attacker's listening port"),
+        instance_type=Option("t2.micro", help="Ec2 instance type"),
         profile: str=Argument("default", help="AWS profile name")
     ):
     """
@@ -69,14 +83,16 @@ def user_data_rev_shell(
     _user_data_rev_shell(sess)
 
 @app.command()
-def key_pair_launch_ec2(
-        profile: str=Argument("default", help="AWS profile name")
+def launch_ec2_instance_profile(
+        key_name: str=Option("awspen", help="Key Pair Name"),
+        instance_profile_arn: str=Argument(..., help="instance profile arn"),
+        profile: str=Argument("default", help="AWS profile name"),
     ):
     """
-    Creates SSH key pair and launch an Ec2 instance with the created key pair
+    Launch an Ec2 instance and attach specified instance profile
     """
     sess = create_session(profile)
-    _key_pair_launch_ec2(profile)
+    _launch_ec2_instance_profile(sess, key_name)
 
 @app.command()
 def create_admin_user(
@@ -87,6 +103,16 @@ def create_admin_user(
     """
     sess = create_session(profile)
     _create_admin_user(sess)
+
+@app.command()
+def get_instance_profiles(
+        profile: str=Argument("default", help="AWS profile name")
+    ):
+    """
+    List all instance profiles
+    """
+    sess = create_session(profile)
+    _get_instance_profiles(sess)
 
 @app.command()
 def list_perms(
