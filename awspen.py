@@ -3,18 +3,40 @@
 from typer import Typer, echo, Argument
 from rich.console import Console
 from boto3.session import Session
+from botocore.exceptions import ProfileNotFound
 
 app = Typer()
 console = Console()
 
-def _user_data_rev_shell(profile: str):
+
+# *********************************
+# *********** HELPERS *************
+# *********************************
+
+def create_session(profile: str):
+    try:
+        Session(profile_name=profile)
+    except ProfileNotFound:
+        console.print("Profile was not found.. ([red]ERROR[/red])")
+        console.print("Try specifying a different profile name.. ([yellow]ACTION[/yellow])")
+        exit()
+
+
+# *********************************
+# ************* MAIN **************
+# *********************************
+
+def _user_data_rev_shell(session: Session):
     console.print("Ec2::user data exploit")
 
-def _key_pair_launch_ec2(profile: str):
+def _key_pair_launch_ec2(session: Session):
     console.print("Ec2::user data exploit")
 
-def _check(profile: str):
-    console.print("[red]Checking permissions[/red]")
+def _create_admin_user(session: Session):
+    console.print("Creating new user and adding to Administrators group")
+
+def _list_perms(session: Session):
+    console.print("Listing permissions attached to profile.. ([red]OK[/red])")
 
 
 # *********************************
@@ -28,24 +50,40 @@ def user_data_rev_shell(
         profile: str=Argument("default", help="AWS profile name")
     ):
     """
-    Obtain a reverse shell by launching an Ec2 instance with a malicious user-data script
+    Obtain a reverse shell via user-data script
     """
-    session = Session(profile_name=f"{profile}")
-    _run(profile)
+    sess = create_session(profile)
+    _user_data_rev_shell(sess)
 
 @app.command()
 def key_pair_launch_ec2(
         profile: str=Argument("default", help="AWS profile name")
     ):
-    session = Session(profile_name=f"{profile}")
-    _run(profile)
+    """
+    Creates SSH key pair and launch an Ec2 instance with the created key pair
+    """
+    sess = create_session(profile)
+    _key_pair_launch_ec2(profile)
 
 @app.command()
-def check(
+def create_admin_user(
         profile: str=Argument("default", help="AWS profile name")
     ):
-    session = Session(profile_name=f"{profile}")
-    _check(profile)
+    """
+    Create new user and add to Administrator group
+    """
+    sess = create_session(profile)
+    _create_admin_user(sess)
+
+@app.command()
+def list_perms(
+        profile: str=Argument("default", help="AWS profile name")
+    ):
+    """
+    List the permissions for profile
+    """
+    sess = create_session(profile)
+    _list_perms(sess)
 
 if __name__ == "__main__":
     app()
