@@ -190,9 +190,9 @@ def get_user_data(
     """
 @app.command()
 def mount_snapshot(
-    instance_ip: str=Argument(..., help="IP address of Ec2 instance"),
-    key_file: str=Argument(..., help="SSH key file for Ec2 instance"),
-    user: str=Argument(..., help="The SSH user associated with key file"),
+    az: str=Argument(..., help="The availability zone to create the volume in"),
+    vol_type: str=Argument(..., help="The type of volume to create"),
+    snapshot_id: str=Argument(..., help="The snapshot ID from which to create the volume"),
     profile: str=Argument(..., help="AWS profile")
     ):
     """
