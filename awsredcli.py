@@ -155,6 +155,7 @@ def dump_bucket(profile: str=Argument(..., help="AWS profile")):
 @app.command()
 def add_user_to_group(
         username: str=Argument(..., help="The name of user to create and add to group"),
+        password: str=Argument(..., help="The password for the new user"),
         profile: str=Argument(..., help="AWS profile")
     ):
     """
