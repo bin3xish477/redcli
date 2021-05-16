@@ -167,8 +167,8 @@ def add_user_to_group(
 @app.command()
 def get_instance_creds(
         instance_ip: str=Argument(..., help="IP address of Ec2 instance"),
-        key_file: str=Argument(..., help="SSH pem key file for Ec2 instance"),
-        user: str=Argument("ec2-user", help="The SSH user associated with key"),
+        key_file: str=Argument(..., help="SSH key file for Ec2 instance"),
+        user: str=Argument("ec2-user", help="The SSH user associated with key file"),
         v1: bool=Option(False, help="Use IMDS V1 to get credentials"),
         profile: str=Argument(..., help="AWS profile")
     ):
@@ -179,9 +179,33 @@ def get_instance_creds(
     _get_instance_creds(sess, instance_ip, key_file, v1)
 
 @app.command()
+def get_user_data(
+    instance_ip: str=Argument(..., help="IP address of Ec2 instance"),
+    key_file: str=Argument(..., help="SSH key file for Ec2 instance"),
+    user: str=Argument(..., help="The SSH user associated with key file"),
+    profile: str=Argument(..., help="AWS profile")
+    ):
+    """
+    Get an instances user-data script
+    """
+@app.command()
+def mount_snapshot(
+    instance_ip: str=Argument(..., help="IP address of Ec2 instance"),
+    key_file: str=Argument(..., help="SSH key file for Ec2 instance"),
+    user: str=Argument(..., help="The SSH user associated with key file"),
+    profile: str=Argument(..., help="AWS profile")
+    ):
+    """
+    Create EBS volume from snapshot and mount to instance
+    """
+
+@app.command()
 def get_security_groups(
         profile: str=Argument(..., help="AWS profile") 
     ):
+    """
+    List all Ec2 instances security groups
+    """
     sess = _create_session(profile)
     _get_security_groups(sess)
 
