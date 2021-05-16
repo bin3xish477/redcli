@@ -97,7 +97,7 @@ def user_data_rev_shell(
 
 @app.command()
 def launch_ec2_instance_profile(
-        key_name: str=Option("awspen", help="Key Pair Name"),
+        key_name: str=Option("awsred", help="Key Pair Name"),
         instance_profile_arn: str=Argument(..., help="instance profile arn"),
         profile: str=Argument("default", help="AWS profile name")):
     """
