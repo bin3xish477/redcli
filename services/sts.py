@@ -5,5 +5,7 @@ class Sts():
         self.client = session.client("sts")
     
     def whoami(self):
-        return self.client.get_caller_identity()
+        ident = self.client.get_caller_identity()
+        del ident["ResponseMetadata"]
+        return ident
         

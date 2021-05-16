@@ -13,6 +13,7 @@ from services.iam import Iam
 from services.ec2 import Ec2
 from services.s3 import S3
 from services.eks import Eks
+from services.imds import Imds
 
 # globals
 app = Typer()
@@ -62,20 +63,27 @@ def _ls_perms(session: Session):
     console.log(policy_tbl)
 
 def _ls_buckets(session: Session):
+    console.log("Attempting to list buckets.. ([purple underline]ATTENTION[/purple underline])")
     buckets = S3(session, console).ls_buckets()
-    bucket_tbl = tabulate(buckets, headers=[], tablefmt=tbl_fmt)
+    bucket_tbl = tabulate(buckets, headers=["BucketName", "CreationDate"], tablefmt=tbl_fmt)
+    console.print(bucket_tbl)
 
-def _dump_bucket(session: Session):
+def _dump_bucket(session: Session, bucket: str):
+    console.log("Attempting to dump contents for")
     pass
 
-def _create_admin_user(self):
+def _create_admin_user(session: Session):
     pass
+
+def _get_instance_creds(
+    session: Session, instance_ip: str, key_file: str, v1: bool):
+    Imds(session, console).get_metadata_identity(instance_ip, )
+    console.print()
 
 def _whoami(session: Session):
     console.log("Invoking `get-caller-identity` API.. ([bold green]OK[/ bold green])")
-    iden = Sts(session).whoami()
-    del iden["ResponseMetadata"]
-    console.print(iden)
+    ident = Sts(session).whoami()
+    console.print(ident)
 
 
 # *********************************
@@ -87,7 +95,7 @@ def user_data_rev_shell(
         rhost: str=Argument(..., help="The remote attacker's IP address"),
         rport: int=Option(7777, help="The remote attacker's listening port"),
         instance_type=Option("t2.micro", help="Ec2 instance type"),
-        profile: str=Argument("default", help="AWS profile name")
+        profile: str=Argument(..., help="AWS profile name")
     ):
     """
     Obtain a reverse shell via user-data script
@@ -99,7 +107,8 @@ def user_data_rev_shell(
 def launch_ec2_instance_profile(
         key_name: str=Option("awsred", help="Key Pair Name"),
         instance_profile_arn: str=Argument(..., help="instance profile arn"),
-        profile: str=Argument("default", help="AWS profile name")):
+        profile: str=Argument(..., help="AWS profile name")
+    ):
     """
     Launch an Ec2 instance and attach specified instance profile
     """
@@ -107,8 +116,7 @@ def launch_ec2_instance_profile(
     _launch_ec2_instance_profile(sess, key_name, instance_profile_arn)
 
 @app.command()
-def create_admin_user(
-        profile: str=Argument("default", help="AWS profile name")):
+def create_admin_user(profile: str=Argument(..., help="AWS profile name")):
     """
     Create new user and add to Administrator group
     """
@@ -116,8 +124,7 @@ def create_admin_user(
     _create_admin_user(sess)
 
 @app.command()
-def get_instance_profiles(
-        profile: str=Argument("default", help="AWS profile name")):
+def get_instance_profiles(profile: str=Argument(..., help="AWS profile name")):
     """
     List all instance profiles
     """
@@ -125,8 +132,7 @@ def get_instance_profiles(
     _get_instance_profiles(sess)
 
 @app.command()
-def ls_perms(
-        profile: str=Argument("default", help="AWS profile name")):
+def ls_perms(profile: str=Argument(..., help="AWS profile name")):
     """
     List profile permissions
     """
@@ -134,8 +140,7 @@ def ls_perms(
     _ls_perms(sess)
 
 @app.command()
-def ls_buckets(
-        profile: str=Argument("default", help="AWS profile name")):
+def ls_buckets(profile: str=Argument(...,help="AWS profile name")):
     """
     List all S3 buckets if allowed
     """
@@ -143,8 +148,7 @@ def ls_buckets(
     _ls_buckets(sess)
 
 @app.command()
-def dump_bucket(
-        profile: str=Argument("default", help="AWS profile name")):
+def dump_bucket(profile: str=Argument(..., help="AWS profile name")):
     """
     Dump S3 bucket contents
     """
@@ -153,7 +157,9 @@ def dump_bucket(
 
 @app.command()
 def create_admin_user(
-        profile: str=Argument("default", help="AWS profile name")):
+        username: str=Argument(..., help="The name of user to create"),
+        profile: str=Argument(..., help="AWS profile name")
+    ):
     """
     Attempt to create an Admin user
     """
@@ -161,8 +167,21 @@ def create_admin_user(
     _create_admin_user(sess)
 
 @app.command()
-def whoami(
-        profile: str=Argument("default", help="AWS profile name")):
+def get_instance_creds(
+        instance_ip: str=Argument(..., help="IP address of Ec2 instance"),
+        key_file: str=Argument(..., help="SSH pem key file for Ec2 instance"),
+        user: str=Argument("ec2-user", help="The SSH user associated with key"),
+        v1: bool=Option(False, help="Use IMDS V1 to get credentials"),
+        profile: str=Argument(..., help="AWS profile name")
+    ):
+    """
+    Get instance credentials via IMDS (V1|V2)
+    """
+    sess = create_session(profile)
+    _get_instance_creds(sess, instance_ip, key_file, v1)
+
+@app.command()
+def whoami(profile: str=Argument(..., help="AWS profile name")):
     """
     Get profile identity
     """
