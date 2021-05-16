@@ -14,4 +14,7 @@ class Iam():
                 policy_name.append(policy["PolicyName"])
                 policy_arns.append(policy["PolicyArn"])
         return list(zip(policy_name, policy_arns))
+    
+    def create_user(self):
+        pass
             
