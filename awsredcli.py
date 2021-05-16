@@ -72,7 +72,9 @@ def _dump_bucket(session: Session, bucket: str):
     console.log("Attempting to dump contents for")
     pass
 
-def _create_admin_user(session: Session):
+def _add_user_to_group(session: Session, username: str):
+    # use list-groups to list groups and have user select group
+    # create user and then add to specified group
     pass
 
 def _get_instance_creds(
@@ -119,14 +121,6 @@ def launch_ec2_instance_profile(
     _launch_ec2_instance_profile(sess, key_name, instance_profile_arn)
 
 @app.command()
-def create_admin_user(profile: str=Argument(..., help="AWS profile")):
-    """
-    Create new user and add to Administrator group
-    """
-    sess = _create_session(profile)
-    _create_admin_user(sess)
-
-@app.command()
 def get_instance_profiles(profile: str=Argument(..., help="AWS profile")):
     """
     List all instance profiles
@@ -159,15 +153,15 @@ def dump_bucket(profile: str=Argument(..., help="AWS profile")):
     _dump_bucket(sess)
 
 @app.command()
-def create_admin_user(
-        username: str=Argument(..., help="The name of user to create"),
+def add_user_to_group(
+        username: str=Argument(..., help="The name of user to create and add to group"),
         profile: str=Argument(..., help="AWS profile")
     ):
     """
-    Attempt to create an Admin user
+    Attempt to add user to group to escalate privileges
     """
     sess = _create_session(profile)
-    _create_admin_user(sess)
+    _add_user_to_group(sess, username)
 
 @app.command()
 def get_instance_creds(
