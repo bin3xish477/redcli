@@ -44,23 +44,23 @@ def _user_data_rev_shell(session: Session, rhost: str, rport: int):
 
 def _launch_ec2_instance_profile(
     session: Session, key_name: str, instance_profile_arn: str):
-    console.log("Running `launch-ec2-instance-profile` command.. ([bold purple]ATTENTION[/bold purple])")
+    console.log("Running `launch-ec2-instance-profile` command.. ([blink purple]ATTENTION[/blink purple])")
     Ec2(session, console).launch_ec2_instance_profile(key_name, instance_profile_arn)
 
 def _get_instance_profiles(session: Session):
-    console.log("Retrieving instance profiles.. ([bold green]OK[/bold green])")
+    console.log("Retrieving instance profiles.. ([blink green]OK[/blink green])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
     instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
     console.print(instance_profile_tbl)
 
 def _ls_perms(session: Session):
     policies = Iam(session, console).get_policies()
-    console.log("Listing permissions attached to profile.. ([bold green]OK[/ bold green])")
+    console.log("Listing permissions attached to profile.. ([blink green]OK[/ blink green])")
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
     console.print(policy_tbl)
 
 def _ls_buckets(session: Session):
-    console.log("Attempting to list buckets.. ([purple underline]ATTENTION[/purple underline])")
+    console.log("Attempting to list buckets.. ([blink purple]ATTENTION[/blink purple])")
     buckets = S3(session, console).ls_buckets()
     bucket_tbl = tabulate(buckets, headers=["BucketName", "CreationDate"], tablefmt=tbl_fmt)
     console.print(bucket_tbl)
@@ -79,12 +79,16 @@ def _get_instance_creds(
     Imds(session, console).get_metadata_identity(instance_ip, key_file, user, v1)
 
 def _get_security_groups(session: Session):
+    console.log("Listing instance security groups.. ([blink magenta]ATTENTION[/blink magenta])\n")
     Ec2(session, console).get_security_groups()
 
 def _whoami(session: Session):
-    console.log("Invoking `get-caller-identity` API.. ([bold green]OK[/ bold green])")
+    console.log("Invoking `get-caller-identity` API.. ([blink green]OK[/ blink green])")
     ident = Sts(session).whoami()
-    console.print(ident)
+    keys = ["UserId", "Account", "Arn"]
+    values = ident.values()
+    ident_tbl = tabulate(zip(keys, values), headers=["Key", "Value"], tablefmt=tbl_fmt)
+    console.print(ident_tbl)
 
 
 # *********************************

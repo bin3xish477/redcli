@@ -80,9 +80,8 @@ class Ec2():
                     cidrs.append(ip_range["CidrIp"])
                     descriptions.append(ip_range["Description"])
             if cidrs:
-                self.console.print(f"[red underline]SecurityGroupName[/red underline]: {security_group['GroupName']}")
-                self.console.print("Rules", style="#FFA500")
-                self.console.print('\u2015'*5)
+                self.console.print(f"[red]SecurityGroupName[/red]: {security_group['GroupName']}")
+                self.console.print("[#FFA500 underline]Rules[/#FFA500 underline]")
                 self.console.print(
                     " "*3, f"\u2022 From {str(cidrs)}::{rule['FromPort']}",
                     "\u2192", f"::{rule['ToPort']}", f"([bold yellow]ALLOW[/bold yellow])\n"
