@@ -39,28 +39,25 @@ def _create_session(profile: str):
 # ************* MAIN **************
 # *********************************
 
-def _user_data_rev_shell(session: Session):
-    console.log("Ec2::user data exploit")
+def _user_data_rev_shell(session: Session, rhost: str, rport: int):
+    console.log("")
 
 def _launch_ec2_instance_profile(
     session: Session, key_name: str, instance_profile_arn: str):
     console.log("Running `launch-ec2-instance-profile` command.. ([bold purple]ATTENTION[/bold purple])")
     Ec2(session, console).launch_ec2_instance_profile(key_name, instance_profile_arn)
 
-def _create_admin_user(session: Session):
-    console.log("Creating new user and adding to Administrators group")
-
 def _get_instance_profiles(session: Session):
     console.log("Retrieving instance profiles.. ([bold green]OK[/bold green])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
     instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
-    console.log(instance_profile_tbl)
+    console.print(instance_profile_tbl)
 
 def _ls_perms(session: Session):
     policies = Iam(session, console).get_policies()
     console.log("Listing permissions attached to profile.. ([bold green]OK[/ bold green])")
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
-    console.log(policy_tbl)
+    console.print(policy_tbl)
 
 def _ls_buckets(session: Session):
     console.log("Attempting to list buckets.. ([purple underline]ATTENTION[/purple underline])")
@@ -69,7 +66,7 @@ def _ls_buckets(session: Session):
     console.print(bucket_tbl)
 
 def _dump_bucket(session: Session, bucket: str):
-    console.log("Attempting to dump contents for")
+    console.log(f"Attempting to dump contents for s3: {bucket}")
     pass
 
 def _add_user_to_group(session: Session, username: str):
@@ -78,9 +75,8 @@ def _add_user_to_group(session: Session, username: str):
     pass
 
 def _get_instance_creds(
-    session: Session, instance_ip: str, key_file: str, v1: bool):
-    Imds(session, console).get_metadata_identity(instance_ip, )
-    console.print()
+    session: Session, instance_ip: str, key_file: str, user: str, v1: bool):
+    Imds(session, console).get_metadata_identity(instance_ip, key_file, user, v1)
 
 def _get_security_groups(session: Session):
     Ec2(session, console).get_security_groups()
@@ -188,6 +184,7 @@ def get_user_data(
     """
     Get an instances user-data script
     """
+
 @app.command()
 def mount_snapshot(
     az: str=Argument(..., help="The availability zone to create the volume in"),

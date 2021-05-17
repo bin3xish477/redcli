@@ -13,15 +13,15 @@ class Ec2():
         def _create(key_name: str, dry=True):
             try:
                 if not dry:
-                    self.console.log(f"Creating key pair named `{key_name}`.. ([bold purple]ATTENTION[/bold purple])")
+                    self.console.print(f"Creating key pair named `{key_name}`.. ([bold purple]ATTENTION[/bold purple])")
                     key_pair = self.ec2.create_key_pair(
                         KeyName=key_name,
                         DryRun=dry
                     )
-                    self.console.log("Creating directory: `keys` ([bold blue]CREATED DIRECTORY[/bold blue]) ")
+                    self.console.print("Creating directory: `keys` ([bold blue]CREATED DIRECTORY[/bold blue]) ")
                     mkdir("./keys")
                     with open(f"./keys/{key_name}.pem", "w") as priv_key:
-                        self.console.log(f"Writing PEM key to file: `./keys/{key_name}.pem`.. ([bold blue]CREATED FILE[/bold blue])")
+                        self.console.print(f"Writing PEM key to file: `./keys/{key_name}.pem`.. ([bold blue]CREATED FILE[/bold blue])")
                         priv_key.write(key_pair["KeyMaterial"])
                 else:
                     self.ec2.create_key_pair(
@@ -36,7 +36,7 @@ class Ec2():
 
         success = _create(key_name)
         if success:
-            self.console.log("You have the required permissions to create a key pair ([green]SUCCESS[/green])")
+            self.console.print("You have the required permissions to create a key pair ([green]SUCCESS[/green])")
             if y_n := self.console.input(
                 "Would you like to create the key pair? ([blue]y[/blue]/[red]n[/red]): "
             ).strip().lower() == "y":
