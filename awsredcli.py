@@ -48,42 +48,44 @@ def _launch_ec2_instance_profile(
     Ec2(session, console).launch_ec2_instance_profile(key_name, instance_profile_arn)
 
 def _get_instance_profiles(session: Session):
-    console.log("Retrieving instance profiles.. ([blink green]OK[/blink green])")
+    console.log("Running `get-instance-profiles` command.. ([blink purple]ATTENTION[/blink purple])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
     instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
     console.print(instance_profile_tbl)
 
 def _ls_perms(session: Session):
+    console.log("Running `ls-perms` command.. ([blink purple]ATTENTION[/blink purple])")
     policies = Iam(session, console).get_policies()
-    console.log("Listing permissions attached to profile.. ([blink green]OK[/ blink green])")
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
     console.print(policy_tbl)
 
 def _ls_buckets(session: Session):
-    console.log("Attempting to list buckets.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `ls-buckets` command.. ([blink purple]ATTENTION[/blink purple])")
     buckets = S3(session, console).ls_buckets()
     bucket_tbl = tabulate(buckets, headers=["BucketName", "CreationDate"], tablefmt=tbl_fmt)
     console.print(bucket_tbl)
 
 def _dump_bucket(session: Session, bucket: str):
-    console.log(f"Attempting to dump contents for s3: {bucket}")
+    console.log("Running `dump-bucket` command.. ([blink purple]ATTENTION[/blink purple])")
     pass
 
 def _add_user_to_group(session: Session, username: str):
+    console.log("Running `add-user-to-group` command.. ([blink purple]ATTENTION[/blink purple])")
     # use list-groups to list groups and have user select group
     # create user and then add to specified group
     pass
 
 def _get_instance_creds(
     session: Session, instance_ip: str, key_file: str, user: str, v1: bool):
+    console.log("Running `get-instance-creds` command.. ([blink purple]ATTENTION[/blink purple])")
     Imds(session, console).get_metadata_identity(instance_ip, key_file, user, v1)
 
 def _get_security_groups(session: Session):
-    console.log("Listing instance security groups.. ([blink magenta]ATTENTION[/blink magenta])\n")
+    console.log("Running `get-security-groups` command.. ([blink purple]ATTENTION[/blink purple])")
     Ec2(session, console).get_security_groups()
 
 def _whoami(session: Session):
-    console.log("Invoking `get-caller-identity` API.. ([blink green]OK[/ blink green])")
+    console.log("Running `whoami` command.. ([blink purple]OK[/blink purple])")
     ident = Sts(session).whoami()
     keys = ["UserId", "Account", "Arn"]
     values = ident.values()
