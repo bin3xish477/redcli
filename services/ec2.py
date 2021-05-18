@@ -65,15 +65,20 @@ class Ec2():
                 MaxCount=1,
                 MinCount=1
             )
-            self.console.print("Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
-            instance_id = results["Instances"][0]["InstanceId"]
-            self.console.print("\t\u2022 Instance ID:", instance_id)
-            self.console.print("Retrieving instance public IP address.. ([blue]INFO[/blue])")
-            sleep(5)
+        except ClientError:
+            self.console.log("An error occured.. ([red]ERROR[/red])")
+            exit()
+        self.console.print("Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
+        instance_id = results["Instances"][0]["InstanceId"]
+        self.console.print("\t\u2022 Instance ID:", instance_id)
+        self.console.print("Retrieving instance public IP address.. ([blue]INFO[/blue])")
+        sleep(5)
+        try:
             results = self.ec2.describe_instances(InstanceIds=[instance_id])
             self.console.print("\t\u2022 Public IP Address:", results["Reservations"][0]["Instances"][0]["PublicIpAddress"])
-        except ClientError as e:
-            print(e)
+        except ClientError:
+            self.console.log("An error occured while attempting to retrieve instance public IP address.. ([red]ERROR[/red])")
+            exit()
 
     def launch_ec2_with_instance_profile(
         self, key_name: str, ami_id: str, security_group_ids: list,
