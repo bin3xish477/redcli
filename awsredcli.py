@@ -2,6 +2,7 @@
 
 # third party
 from typer import Typer, echo, Argument, Option
+from typing import List, Optional
 from rich.console import Console
 from tabulate import tabulate
 from boto3.session import Session
@@ -40,48 +41,54 @@ def _create_session(profile: str):
 # *********************************
 
 def _user_data_rev_shell(session: Session, rhost: str, rport: int):
-    console.log("")
+    console.log("Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
 
-def _launch_ec2_instance_profile(
-    session: Session, key_name: str, instance_profile_arn: str):
-    console.log("Running `launch-ec2-instance-profile` command.. ([blink purple]ATTENTION[/blink purple])")
-    Ec2(session, console).launch_ec2_instance_profile(key_name, instance_profile_arn)
+def _launch_ec2_with_instance_profile(
+    session: Session, key_name: str, ami_id: str, instance_profile_arn: str,
+    security_group_ids: list, subnet_id: str, instance_type: str
+    ):
+    console.log("Running `launch-ec2-with-instance-profile` command.. ([blink purple]OK[/blink purple])")
+    Ec2(session, console).launch_ec2_with_instance_profile(
+        key_name=key_name, ami_id=ami_id, security_group_ids=security_group_ids,
+        instance_profile_arn=instance_profile_arn, instance_type=instance_type,
+        subnet_id=subnet_id
+    )
 
 def _get_instance_profiles(session: Session):
-    console.log("Running `get-instance-profiles` command.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `get-instance-profiles` command.. ([blink purple]OK[/blink purple])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
     instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
     console.print(instance_profile_tbl)
 
 def _ls_perms(session: Session):
-    console.log("Running `ls-perms` command.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
     policies = Iam(session, console).get_policies()
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
     console.print(policy_tbl)
 
 def _ls_buckets(session: Session):
-    console.log("Running `ls-buckets` command.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `ls-buckets` command.. ([blink purple]OK[/blink purple])")
     buckets = S3(session, console).ls_buckets()
     bucket_tbl = tabulate(buckets, headers=["BucketName", "CreationDate"], tablefmt=tbl_fmt)
     console.print(bucket_tbl)
 
 def _dump_bucket(session: Session, bucket: str):
-    console.log("Running `dump-bucket` command.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `dump-bucket` command.. ([blink purple]OK[/blink purple])")
     pass
 
 def _add_user_to_group(session: Session, username: str):
-    console.log("Running `add-user-to-group` command.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `add-user-to-group` command.. ([blink purple]OK[/blink purple])")
     # use list-groups to list groups and have user select group
     # create user and then add to specified group
     pass
 
 def _get_instance_creds(
     session: Session, instance_ip: str, key_file: str, user: str, v1: bool):
-    console.log("Running `get-instance-creds` command.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `get-instance-creds` command.. ([blink purple]OK[/blink purple])")
     Imds(session, console).get_metadata_identity(instance_ip, key_file, user, v1)
 
 def _get_security_groups(session: Session):
-    console.log("Running `get-security-groups` command.. ([blink purple]ATTENTION[/blink purple])")
+    console.log("Running `get-security-groups` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).get_security_groups()
 
 def _whoami(session: Session):
@@ -99,10 +106,10 @@ def _whoami(session: Session):
 
 @app.command()
 def user_data_rev_shell(
-        rhost: str=Argument(..., help="The remote attacker's IP address"),
+        rhost: str = Argument(..., help="The remote attacker's IP address"),
         rport: int=Option(7777, help="The remote attacker's listening port"),
         instance_type=Option("t2.micro", help="Ec2 instance type"),
-        profile: str=Argument(..., help="AWS profile")
+        profile: str = Argument(..., help="AWS profile")
     ):
     """
     Obtain a reverse shell via user-data script
@@ -111,19 +118,26 @@ def user_data_rev_shell(
     _user_data_rev_shell(sess)
 
 @app.command()
-def launch_ec2_instance_profile(
-        key_name: str=Option("awsred", help="Key Pair Name"),
-        instance_profile_arn: str=Argument(..., help="instance profile arn"),
-        profile: str=Argument(..., help="AWS profile")
+def launch_ec2_with_instance_profile(
+        instance_profile_arn: str = Argument(..., help="Instance profile ARN"),
+        ami_id: str = Option("ami-00a208c7cdba991ea", help="The ID of the AMI"),
+        key_name: str = Option("awsred-ssh", help="Name of the key pair to create"),
+        instance_type: str = Option("t2.micro", help="The instance type to create"),
+        subnet_id: str = Option("", help="The subnet ID to launch the Ec2 in"),
+        security_group_ids: Optional[List[str]] = Option(None, help="The security group ID's to attach to the new instance"), 
+        profile: str = Argument(..., help="AWS profile")
     ):
     """
     Launch an Ec2 instance and attach specified instance profile
     """
     sess = _create_session(profile)
-    _launch_ec2_instance_profile(sess, key_name, instance_profile_arn)
+    _launch_ec2_with_instance_profile(
+        sess, key_name, ami_id, instance_profile_arn,
+        security_group_ids, subnet_id, instance_type
+    )
 
 @app.command()
-def get_instance_profiles(profile: str=Argument(..., help="AWS profile")):
+def get_instance_profiles(profile: str = Argument(..., help="AWS profile")):
     """
     List all instance profiles
     """
@@ -131,7 +145,7 @@ def get_instance_profiles(profile: str=Argument(..., help="AWS profile")):
     _get_instance_profiles(sess)
 
 @app.command()
-def ls_perms(profile: str=Argument(..., help="AWS profile")):
+def ls_perms(profile: str = Argument(..., help="AWS profile")):
     """
     List profile permissions
     """
@@ -139,7 +153,7 @@ def ls_perms(profile: str=Argument(..., help="AWS profile")):
     _ls_perms(sess)
 
 @app.command()
-def ls_buckets(profile: str=Argument(...,help="AWS profile")):
+def ls_buckets(profile: str = Argument(...,help="AWS profile")):
     """
     List all S3 buckets if allowed
     """
@@ -147,7 +161,7 @@ def ls_buckets(profile: str=Argument(...,help="AWS profile")):
     _ls_buckets(sess)
 
 @app.command()
-def dump_bucket(profile: str=Argument(..., help="AWS profile")):
+def dump_bucket(profile: str = Argument(..., help="AWS profile")):
     """
     Dump S3 bucket contents
     """
@@ -156,9 +170,9 @@ def dump_bucket(profile: str=Argument(..., help="AWS profile")):
 
 @app.command()
 def add_user_to_group(
-        username: str=Argument(..., help="The name of user to create and add to group"),
-        password: str=Argument(..., help="The password for the new user"),
-        profile: str=Argument(..., help="AWS profile")
+        username: str = Argument(..., help="The name of user to create and add to group"),
+        password: str = Argument(..., help="The password for the new user"),
+        profile: str = Argument(..., help="AWS profile")
     ):
     """
     Attempt to add user to group to escalate privileges
@@ -168,11 +182,11 @@ def add_user_to_group(
 
 @app.command()
 def get_instance_creds(
-        instance_ip: str=Argument(..., help="IP address of Ec2 instance"),
-        key_file: str=Argument(..., help="SSH key file for Ec2 instance"),
-        user: str=Argument("ec2-user", help="The SSH user associated with key file"),
+        instance_ip: str = Argument(..., help="IP address of Ec2 instance"),
+        key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
+        user: str = Argument("ec2-user", help="The SSH user associated with key file"),
         v1: bool=Option(False, help="Use IMDS V1 to get credentials"),
-        profile: str=Argument(..., help="AWS profile")
+        profile: str = Argument(..., help="AWS profile")
     ):
     """
     Get instance credentials via IMDS (V1|V2)
@@ -182,10 +196,10 @@ def get_instance_creds(
 
 @app.command()
 def get_user_data(
-    instance_ip: str=Argument(..., help="IP address of Ec2 instance"),
-    key_file: str=Argument(..., help="SSH key file for Ec2 instance"),
-    user: str=Argument(..., help="The SSH user associated with key file"),
-    profile: str=Argument(..., help="AWS profile")
+    instance_ip: str = Argument(..., help="IP address of Ec2 instance"),
+    key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
+    user: str = Argument(..., help="The SSH user associated with key file"),
+    profile: str = Argument(..., help="AWS profile")
     ):
     """
     Get an instances user-data script
@@ -193,10 +207,10 @@ def get_user_data(
 
 @app.command()
 def mount_snapshot(
-    az: str=Argument(..., help="The availability zone to create the volume in"),
-    vol_type: str=Argument(..., help="The type of volume to create"),
-    snapshot_id: str=Argument(..., help="The snapshot ID from which to create the volume"),
-    profile: str=Argument(..., help="AWS profile")
+    az: str = Argument(..., help="The availability zone to create the volume in"),
+    vol_type: str = Argument(..., help="The type of volume to create"),
+    snapshot_id: str = Argument(..., help="The snapshot ID from which to create the volume"),
+    profile: str = Argument(..., help="AWS profile")
     ):
     """
     Create EBS volume from snapshot and mount to instance
@@ -204,7 +218,7 @@ def mount_snapshot(
 
 @app.command()
 def get_security_groups(
-        profile: str=Argument(..., help="AWS profile") 
+        profile: str = Argument(..., help="AWS profile") 
     ):
     """
     List all Ec2 instances security groups
@@ -213,7 +227,7 @@ def get_security_groups(
     _get_security_groups(sess)
 
 @app.command()
-def whoami(profile: str=Argument(..., help="AWS profile")):
+def whoami(profile: str = Argument(..., help="AWS profile")):
     """
     Get profile identity
     """
