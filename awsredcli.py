@@ -57,24 +57,33 @@ def _launch_ec2_with_instance_profile(
 def _get_instance_profiles(session: Session):
     console.log("Running `get-instance-profiles` command.. ([blink purple]OK[/blink purple])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
+    if not instance_profiles:
+        console.print("No instance profiles were found.. ([yellow]INFO[/yellow])")
+        return
     instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
     console.print(instance_profile_tbl)
 
-def _ls_perms(session: Session):
+def _list_permissions(session: Session):
     console.log("Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
     policies = Iam(session, console).get_policies()
+    if not policies:
+        console.print("No policies were found.. ([yellow]INFO[/yellow])")
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
     console.print(policy_tbl)
 
-def _ls_buckets(session: Session):
+def _list_buckets(session: Session):
     console.log("Running `ls-buckets` command.. ([blink purple]OK[/blink purple])")
-    buckets = S3(session, console).ls_buckets()
+    buckets = S3(session, console).list_buckets()
+    if not buckets:
+        console.print("No buckets were found.. ([yellow]INFO[/yellow])")
     bucket_tbl = tabulate(buckets, headers=["BucketName", "CreationDate"], tablefmt=tbl_fmt)
     console.print(bucket_tbl)
 
-def _dump_bucket(session: Session, bucket: str):
+def _dump_buckets(session: Session, bucket: str):
     console.log("Running `dump-bucket` command.. ([blink purple]OK[/blink purple])")
-    pass
+    if bucket == "":
+        all = True
+    S3(session, console).dump_buckets(bucket)
 
 def _add_user_to_group(session: Session, username: str):
     console.log("Running `add-user-to-group` command.. ([blink purple]OK[/blink purple])")
@@ -145,28 +154,31 @@ def get_instance_profiles(profile: str = Argument(..., help="AWS profile")):
     _get_instance_profiles(sess)
 
 @app.command()
-def ls_perms(profile: str = Argument(..., help="AWS profile")):
+def list_permissions(profile: str = Argument(..., help="AWS profile")):
     """
-    List profile permissions
+    List permissions associated with profile
     """
     sess = _create_session(profile)
-    _ls_perms(sess)
+    _list_permissions(sess)
 
 @app.command()
-def ls_buckets(profile: str = Argument(...,help="AWS profile")):
+def list_buckets(profile: str = Argument(...,help="AWS profile")):
     """
     List all S3 buckets if allowed
     """
     sess = _create_session(profile)
-    _ls_buckets(sess)
+    _list_buckets(sess)
 
 @app.command()
-def dump_bucket(profile: str = Argument(..., help="AWS profile")):
+def dump_buckets(
+        bucket: str = Option("", help="Speicific S3 bucket to dump"),
+        profile: str = Argument(..., help="AWS profile"),
+    ):
     """
-    Dump S3 bucket contents
+    Dump content for all S3 buckets
     """
     sess = _create_session(profile)
-    _dump_bucket(sess)
+    _dump_buckets(sess, bucket)
 
 @app.command()
 def add_user_to_group(
