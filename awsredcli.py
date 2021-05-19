@@ -123,8 +123,7 @@ def user_data_rev_shell(
     """
     Obtain a reverse shell via user-data script
     """
-    sess = _create_session(profile)
-    _user_data_rev_shell(sess)
+    _user_data_rev_shell(_create_session(profile))
 
 @app.command()
 def launch_ec2_with_instance_profile(
@@ -139,9 +138,8 @@ def launch_ec2_with_instance_profile(
     """
     Launch an Ec2 instance and attach specified instance profile
     """
-    sess = _create_session(profile)
     _launch_ec2_with_instance_profile(
-        sess, key_name, ami_id, instance_profile_arn,
+        _create_session(profile), key_name, ami_id, instance_profile_arn,
         security_group_ids, subnet_id, instance_type
     )
 
@@ -150,24 +148,21 @@ def get_instance_profiles(profile: str = Argument(..., help="AWS profile")):
     """
     List all instance profiles
     """
-    sess = _create_session(profile)
-    _get_instance_profiles(sess)
+    _get_instance_profiles(_create_session(profile))
 
 @app.command()
 def list_permissions(profile: str = Argument(..., help="AWS profile")):
     """
     List permissions associated with profile
     """
-    sess = _create_session(profile)
-    _list_permissions(sess)
+    _list_permissions(_create_session(profile))
 
 @app.command()
 def list_buckets(profile: str = Argument(...,help="AWS profile")):
     """
     List all S3 buckets if allowed
     """
-    sess = _create_session(profile)
-    _list_buckets(sess)
+    _list_buckets(_create_session(profile))
 
 @app.command()
 def dump_buckets(
@@ -177,8 +172,7 @@ def dump_buckets(
     """
     Dump content for all S3 buckets
     """
-    sess = _create_session(profile)
-    _dump_buckets(sess, bucket)
+    _dump_buckets(_create_session(profile), bucket)
 
 @app.command()
 def add_user_to_group(
@@ -190,7 +184,7 @@ def add_user_to_group(
     Attempt to add user to group to escalate privileges
     """
     sess = _create_session(profile)
-    _add_user_to_group(sess, username)
+    _add_user_to_group(_create_session(profile), username)
 
 @app.command()
 def get_instance_creds(
@@ -203,8 +197,7 @@ def get_instance_creds(
     """
     Get instance credentials via IMDS (V1|V2)
     """
-    sess = _create_session(profile)
-    _get_instance_creds(sess, instance_ip, key_file, v1)
+    _get_instance_creds(_create_session(profile), instance_ip, key_file, v1)
 
 @app.command()
 def get_user_data(
@@ -235,16 +228,14 @@ def get_security_groups(
     """
     List all Ec2 instances security groups
     """
-    sess = _create_session(profile)
-    _get_security_groups(sess)
+    _get_security_groups(_create_session(profile))
 
 @app.command()
 def whoami(profile: str = Argument(..., help="AWS profile")):
     """
     Get profile identity
     """
-    sess = _create_session(profile)
-    _whoami(sess)
+    _whoami(_create_session(profile))
 
 if __name__ == "__main__":
     app()
