@@ -78,9 +78,7 @@ class Ec2():
                     MaxCount=1,
                     MinCount=1
                 )
-
         except ClientError as e:
-            self.console.log(e)
             self.console.log("An error occured.. ([red]ERROR[/red])")
             exit()
         self.console.print("Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
