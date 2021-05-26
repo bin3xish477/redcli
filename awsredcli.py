@@ -40,10 +40,13 @@ def _create_session(profile: str):
 # ************* MAIN **************
 # *********************************
 
+# [START _user_data_rev_shell]
 def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhost: str, rport: int):
     console.log("Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).user_data_rev_shell(ami_id, instance_type, rhost, rport)
+# [END _user_data_rev_shell]
 
+# [START _launch_ec2_with_instance_profile]
 def _launch_ec2_with_instance_profile(
     session: Session, key_name: str, ami_id: str, instance_profile_arn: str,
     security_group_ids: list, subnet_id: str, instance_type: str
@@ -54,7 +57,9 @@ def _launch_ec2_with_instance_profile(
         instance_profile_arn=instance_profile_arn, instance_type=instance_type,
         subnet_id=subnet_id
     )
+# [END _launch_ec2_with_instance_profile]
 
+# [START _get_instance_profiles]
 def _get_instance_profiles(session: Session):
     console.log("Running `get-instance-profiles` command.. ([blink purple]OK[/blink purple])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
@@ -63,7 +68,9 @@ def _get_instance_profiles(session: Session):
         return
     instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
     console.print(instance_profile_tbl)
+# [END _get_instance_profiles]
 
+# [START _list_permissions]
 def _list_permissions(session: Session):
     console.log("Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
     policies = Iam(session, console).get_policies()
@@ -71,7 +78,9 @@ def _list_permissions(session: Session):
         console.print("No policies were found.. ([yellow]INFO[/yellow])")
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
     console.print(policy_tbl)
+# [END _list_permissions]
 
+# [START _list_buckets]
 def _list_buckets(session: Session):
     console.log("Running `ls-buckets` command.. ([blink purple]OK[/blink purple])")
     buckets = S3(session, console).list_buckets()
@@ -79,21 +88,37 @@ def _list_buckets(session: Session):
         console.print("No buckets were found.. ([yellow]INFO[/yellow])")
     bucket_tbl = tabulate(buckets, headers=["BucketName", "CreationDate"], tablefmt=tbl_fmt)
     console.print(bucket_tbl)
+# [END _list_buckets]
 
+# [START _dump_buckets]
 def _dump_buckets(session: Session, bucket: str):
     console.log("Running `dump-buckets` command.. ([blink purple]OK[/blink purple])")
-    if bucket == "":
-        all = True
     S3(session, console).dump_buckets(bucket)
+# [END _dump_buckets]
 
+# [START _get_instance_creds]
 def _get_instance_creds(instance_ip: str, key_file: str, user: str, profile_name: str):
     console.log("Running `get-instance-creds` command.. ([blink purple]OK[/blink purple])")
     Imds(console).get_security_credentials(instance_ip, key_file, user, profile_name)
+# [END _get_instance_creds]
 
+# [START _get_user_data]
+def _get_user_data():
+    console.log("Running `get-user-data` command.. ([blink purple]OK[/blink purple])")
+# [END _get_user_data]
+
+# [START _mount_snapshot]
+def _mount_snapshot():
+    console.log("Running `mount_snapshot` command.. ([blink purple]OK[/blink purple])")
+# [END _mount_snapshot]
+
+# [START _get_security_groups]
 def _get_security_groups(session: Session):
     console.log("Running `get-security-groups` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).get_security_groups()
+# [END _get_security_groups]
 
+# [START _whoami]
 def _whoami(session: Session):
     console.log("Running `whoami` command.. ([blink purple]OK[/blink purple])")
     ident = Sts(session).whoami()
@@ -101,12 +126,14 @@ def _whoami(session: Session):
     values = ident.values()
     ident_tbl = tabulate(zip(keys, values), headers=["Key", "Value"], tablefmt=tbl_fmt)
     console.print(ident_tbl)
+# [END _whoami]
 
 
 # *********************************
 # *********** COMMANDS ************
 # *********************************
 
+# [START user_data_rev_shell]
 @app.command()
 def user_data_rev_shell(
         ami_id: str = Option("ami-00a208c7cdba991ea", help="The ID of the AMI"),
@@ -119,7 +146,9 @@ def user_data_rev_shell(
     Obtain a reverse shell via user-data script
     """
     _user_data_rev_shell(_create_session(profile), ami_id, instance_type, rhost, rport)
+# [END user_data_rev_shell]
 
+# [START launch_ec2_with_instance_profile]
 @app.command()
 def launch_ec2_with_instance_profile(
         instance_profile_arn: str = Argument(..., help="Instance profile ARN"),
@@ -137,28 +166,36 @@ def launch_ec2_with_instance_profile(
         _create_session(profile), key_name, ami_id, instance_profile_arn,
         security_group_ids, subnet_id, instance_type
     )
+# [END launch_ec2_with_instance_profile]
 
+# [START get_instance_profiles]
 @app.command()
 def get_instance_profiles(profile: str = Argument(..., help="AWS profile")):
     """
     List all instance profiles
     """
     _get_instance_profiles(_create_session(profile))
+# [END get_instance_profiles]
 
+# [START list_permissions]
 @app.command()
 def list_permissions(profile: str = Argument(..., help="AWS profile")):
     """
     List permissions associated with profile
     """
     _list_permissions(_create_session(profile))
+# [END list_permissions]
 
+# [START list_buckets]
 @app.command()
 def list_buckets(profile: str = Argument(...,help="AWS profile")):
     """
     List all S3 buckets if allowed
     """
     _list_buckets(_create_session(profile))
+# [END list_buckets]
 
+# [START dump_buckets]
 @app.command()
 def dump_buckets(
         bucket: str = Option("", help="Speicific S3 bucket to dump"),
@@ -168,7 +205,9 @@ def dump_buckets(
     Dump content for all S3 buckets
     """
     _dump_buckets(_create_session(profile), bucket)
+# [END dump_buckets]
 
+# [START get_instance_creds]
 @app.command()
 def get_instance_creds(
         instance_ip: str = Argument(..., help="IP address or Public DNS name of Ec2 instance"),
@@ -180,7 +219,9 @@ def get_instance_creds(
     Get instance credentials via Instance Metadata Server (v1|v2)
     """
     _get_instance_creds(instance_ip, key_file, user, profile_name)
+# [END get_instance_creds]
 
+# [START get_user_data]
 @app.command()
 def get_user_data(
     instance_ip: str = Argument(..., help="IP address of Ec2 instance"),
@@ -191,7 +232,9 @@ def get_user_data(
     """
     Get an instances user-data script
     """
+# [END get_user_data]
 
+# [START mount_snapshot]
 @app.command()
 def mount_snapshot(
     az: str = Argument(..., help="The availability zone to create the volume in"),
@@ -200,9 +243,12 @@ def mount_snapshot(
     profile: str = Argument(..., help="AWS profile")
     ):
     """
-    Create EBS volume from snapshot and mount to instance
+    Create EBS volume from snapshot and mount to instance or to local machine.
     """
+    _mount_snapshot()
+# [END mount_snapshot]
 
+# [START get_security_groups]
 @app.command()
 def get_security_groups(
         profile: str = Argument(..., help="AWS profile") 
@@ -211,13 +257,16 @@ def get_security_groups(
     List all Ec2 instances security groups
     """
     _get_security_groups(_create_session(profile))
+# [END get_security_groups]
 
+# [START whoami]
 @app.command()
 def whoami(profile: str = Argument(..., help="AWS profile")):
     """
     Get profile identity
     """
     _whoami(_create_session(profile))
+# [END whoami]
 
 if __name__ == "__main__":
     app()

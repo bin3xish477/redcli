@@ -6,6 +6,7 @@ class Iam():
         self.console = console
         self.admin_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 
+  # [START get_policies]
     def get_policies(self):
         policy_name = []
         policy_arns = []
@@ -14,7 +15,9 @@ class Iam():
                 policy_name.append(policy["PolicyName"])
                 policy_arns.append(policy["PolicyArn"])
         return list(zip(policy_name, policy_arns))
+  # [END get_policies]
     
+  # [START create_user]
     def create_user(self):
         pass
-            
+  # [END create_user]

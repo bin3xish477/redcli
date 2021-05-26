@@ -6,6 +6,7 @@ class S3():
         self.s3_resource = session.resource("s3")
         self.console = console
 
+    # [START list_buckets]
     def list_buckets(self):
         bucket_names = []
         creation_dates = []
@@ -15,7 +16,9 @@ class S3():
             bucket_names.append(bucket["Name"])
             creation_dates.append(str(bucket["CreationDate"]))
         return list(zip(bucket_names, creation_dates))
+    # [END list_buckets]
 
+    # [START dump_buckets]
     def dump_buckets(self, bucket: str):
         def get_content(bucket: str):
             self.console.print(f"Bucket::[red]{bucket}[/red]")
@@ -33,3 +36,4 @@ class S3():
                 self.console.print('>'*50, '\n')
         else:
             get_content(bucket)
+    # [END dump_buckets]
