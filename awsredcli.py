@@ -26,6 +26,7 @@ tbl_fmt = "fancy_grid"
 # *********** HELPERS *************
 # *********************************
 
+# [START _create_session]
 def _create_session(profile: str):
     try:
         session = Session(profile_name=profile)
@@ -34,7 +35,7 @@ def _create_session(profile: str):
         console.log("Try specifying a different profile name.. ([yellow]ACTION[/yellow])")
         exit()
     return session
-
+# [END _create_session]
 
 # *********************************
 # ************* MAIN **************
