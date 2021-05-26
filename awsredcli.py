@@ -81,21 +81,14 @@ def _list_buckets(session: Session):
     console.print(bucket_tbl)
 
 def _dump_buckets(session: Session, bucket: str):
-    console.log("Running `dump-bucket` command.. ([blink purple]OK[/blink purple])")
+    console.log("Running `dump-buckets` command.. ([blink purple]OK[/blink purple])")
     if bucket == "":
         all = True
     S3(session, console).dump_buckets(bucket)
 
-def _add_user_to_group(session: Session, username: str):
-    console.log("Running `add-user-to-group` command.. ([blink purple]OK[/blink purple])")
-    # use list-groups to list groups and have user select group
-    # create user and then add to specified group
-    pass
-
-def _get_instance_creds(
-    session: Session, instance_ip: str, key_file: str, user: str, v1: bool):
+def _get_instance_creds(instance_ip: str, key_file: str, user: str, profile_name: str):
     console.log("Running `get-instance-creds` command.. ([blink purple]OK[/blink purple])")
-    Imds(session, console).get_metadata_identity(instance_ip, key_file, user, v1)
+    Imds(console).get_security_credentials(instance_ip, key_file, user, profile_name)
 
 def _get_security_groups(session: Session):
     console.log("Running `get-security-groups` command.. ([blink purple]OK[/blink purple])")
@@ -177,29 +170,16 @@ def dump_buckets(
     _dump_buckets(_create_session(profile), bucket)
 
 @app.command()
-def add_user_to_group(
-        username: str = Argument(..., help="The name of user to create and add to group"),
-        password: str = Argument(..., help="The password for the new user"),
-        profile: str = Argument(..., help="AWS profile")
-    ):
-    """
-    Attempt to add user to group to escalate privileges
-    """
-    sess = _create_session(profile)
-    _add_user_to_group(_create_session(profile), username)
-
-@app.command()
 def get_instance_creds(
-        instance_ip: str = Argument(..., help="IP address of Ec2 instance"),
+        instance_ip: str = Argument(..., help="IP address or Public DNS name of Ec2 instance"),
         key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
         user: str = Argument("ec2-user", help="The SSH user associated with key file"),
-        v1: bool=Option(False, help="Use IMDS V1 to get credentials"),
-        profile: str = Argument(..., help="AWS profile")
+        profile_name: str = Option("awsred", help="Profile name to create after capturing credentials")
     ):
     """
-    Get instance credentials via IMDS (V1|V2)
+    Get instance credentials via Instance Metadata Server (v1|v2)
     """
-    _get_instance_creds(_create_session(profile), instance_ip, key_file, v1)
+    _get_instance_creds(instance_ip, key_file, user, profile_name)
 
 @app.command()
 def get_user_data(
