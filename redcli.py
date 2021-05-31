@@ -9,11 +9,11 @@ from boto3.session import Session
 from botocore.exceptions import ProfileNotFound
 
 # internal
-from services.sts import Sts
-from services.iam import Iam
-from services.ec2 import Ec2
-from services.s3 import S3
-from services.imds import Imds
+from providers.aws.sts import Sts
+from providers.aws.iam import Iam
+from providers.aws.ec2 import Ec2
+from providers.aws.s3 import S3
+from providers.aws.imds import Imds
 
 # globals
 app = Typer()
@@ -43,6 +43,7 @@ def _create_session(profile: str):
 # ************* MAIN **************
 # *********************************
 
+# ************** AWS **************
 # [START _user_data_rev_shell]
 def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhost: str, rport: int):
     console.log("> Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
@@ -139,8 +140,14 @@ def _whoami(session: Session):
 # [END _whoami]
 
 
+# ************** GCP **************
+
+
+# ************ AZURE **************
+
+
 # *********************************
-# *********** COMMANDS ************
+# ******* REDCLI COMMANDS *********
 # *********************************
 
 # [START user_data_rev_shell]
