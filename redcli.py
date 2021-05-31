@@ -296,6 +296,7 @@ if __name__ == "__main__":
   ░░   ░    ░    ░ ░  ░ ░          ░ ░    ▒ ░
    ░        ░  ░   ░    ░ ░          ░  ░ ░  
                  ░      ░[/red]
-                          Author: [bold yellow]{__author__}[/bold yellow]
+                          Author:  [bold yellow]{__author__}[/bold yellow]
+                          Version: [bold green]{__version__}[/bold green]
     """)
     app()
