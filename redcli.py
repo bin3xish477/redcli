@@ -284,14 +284,18 @@ def whoami(profile: str = Argument(..., help="AWS profile")):
 # [END whoami]
 
 if __name__ == "__main__":
-    console.print(f"""[red]                                                             .o8            oooo   o8o  
-                                                            "888            `888   `"'  
- .oooo.   oooo oooo    ooo  .oooo.o oooo d8b  .ooooo.   .oooo888   .ooooo.   888  oooo  
-`P  )88b   `88. `88.  .8'  d88(  "8 `888""8P d88' `88b d88' `888  d88' `"Y8  888  `888  
- .oP"888    `88..]88..8'   `"Y88b.   888     888ooo888 888   888  888        888   888  
-d8(  888     `888'`888'    o.  )88b  888     888    .o 888   888  888   .o8  888   888  
-`Y888""8o     `8'  `8'     8""888P' d888b    `Y8bod8P' `Y8bod88P" `Y8bod8P' o888o o888o[/red] v{__version__}
+    console.print(f"""[red]\
 
-                            Author: [yellow]{__author__}[/yellow]
+ ██▀███  ▓█████ ▓█████▄  ▄████▄   ██▓     ██▓
+▓██ ▒ ██▒▓█   ▀ ▒██▀ ██▌▒██▀ ▀█  ▓██▒    ▓██▒
+▓██ ░▄█ ▒▒███   ░██   █▌▒▓█    ▄ ▒██░    ▒██▒
+▒██▀▀█▄  ▒▓█  ▄ ░▓█▄   ▌▒▓▓▄ ▄██▒▒██░    ░██░
+░██▓ ▒██▒░▒████▒░▒████▓ ▒ ▓███▀ ░░██████▒░██░
+░ ▒▓ ░▒▓░░░ ▒░ ░ ▒▒▓  ▒ ░ ░▒ ▒  ░░ ▒░▓  ░░▓  
+  ░▒ ░ ▒░ ░ ░  ░ ░ ▒  ▒   ░  ▒   ░ ░ ▒  ░ ▒ ░
+  ░░   ░    ░    ░ ░  ░ ░          ░ ░    ▒ ░
+   ░        ░  ░   ░    ░ ░          ░  ░ ░  
+                 ░      ░[/red]
+                          Author: [bold yellow]{__author__}[/bold yellow]
     """)
     app()
