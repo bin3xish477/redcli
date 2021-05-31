@@ -21,6 +21,9 @@ app = Typer()
 console = Console()
 tbl_fmt = "fancy_grid"
 
+__version__ = "1.0"
+__author__  = "binexisHATT"
+
 
 # *********************************
 # *********** HELPERS *************
@@ -31,8 +34,8 @@ def _create_session(profile: str):
     try:
         session = Session(profile_name=profile)
     except ProfileNotFound:
-        console.log("Profile was not found.. ([red]ERROR[/red])")
-        console.log("Try specifying a different profile name.. ([yellow]ACTION[/yellow])")
+        console.log("> Profile was not found.. ([red]ERROR[/red])")
+        console.log("> Try specifying a different profile name.. ([yellow]ACTION[/yellow])")
         exit()
     return session
 # [END _create_session]
@@ -43,7 +46,7 @@ def _create_session(profile: str):
 
 # [START _user_data_rev_shell]
 def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhost: str, rport: int):
-    console.log("Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).user_data_rev_shell(ami_id, instance_type, rhost, rport)
 # [END _user_data_rev_shell]
 
@@ -52,7 +55,7 @@ def _launch_ec2_with_instance_profile(
     session: Session, key_name: str, ami_id: str, instance_profile_arn: str,
     security_group_ids: list, subnet_id: str, instance_type: str
     ):
-    console.log("Running `launch-ec2-with-instance-profile` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `launch-ec2-with-instance-profile` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).launch_ec2_with_instance_profile(
         key_name=key_name, ami_id=ami_id, security_group_ids=security_group_ids,
         instance_profile_arn=instance_profile_arn, instance_type=instance_type,
@@ -62,10 +65,10 @@ def _launch_ec2_with_instance_profile(
 
 # [START _get_instance_profiles]
 def _get_instance_profiles(session: Session):
-    console.log("Running `get-instance-profiles` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `get-instance-profiles` command.. ([blink purple]OK[/blink purple])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
     if not instance_profiles:
-        console.print("No instance profiles were found.. ([yellow]INFO[/yellow])")
+        console.print("> No instance profiles were found.. ([yellow]INFO[/yellow])")
         return
     instance_profile_tbl = tabulate(instance_profiles, headers=["InstanceID", "InstanceProfileArn"], tablefmt=tbl_fmt)
     console.print(instance_profile_tbl)
@@ -73,55 +76,56 @@ def _get_instance_profiles(session: Session):
 
 # [START _list_permissions]
 def _list_permissions(session: Session):
-    console.log("Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
     policies = Iam(session, console).get_policies()
     if not policies:
-        console.print("No policies were found.. ([yellow]INFO[/yellow])")
+        console.print("> No policies were found.. ([yellow]INFO[/yellow])")
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
     console.print(policy_tbl)
 # [END _list_permissions]
 
 # [START _list_buckets]
 def _list_buckets(session: Session):
-    console.log("Running `ls-buckets` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `ls-buckets` command.. ([blink purple]OK[/blink purple])")
     buckets = S3(session, console).list_buckets()
     if not buckets:
-        console.print("No buckets were found.. ([yellow]INFO[/yellow])")
+        console.print("> No buckets were found.. ([yellow]INFO[/yellow])")
     bucket_tbl = tabulate(buckets, headers=["BucketName", "CreationDate"], tablefmt=tbl_fmt)
     console.print(bucket_tbl)
 # [END _list_buckets]
 
 # [START _dump_buckets]
 def _dump_buckets(session: Session, bucket: str):
-    console.log("Running `dump-buckets` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `dump-buckets` command.. ([blink purple]OK[/blink purple])")
     S3(session, console).dump_buckets(bucket)
 # [END _dump_buckets]
 
 # [START _get_instance_creds]
-def _get_instance_creds(instance_ip: str, key_file: str, user: str, profile_name: str):
-    console.log("Running `get-instance-creds` command.. ([blink purple]OK[/blink purple])")
-    Imds(console).get_security_credentials(instance_ip, key_file, user, profile_name)
+def _get_instance_creds(instance_ip: str, key_file: str, user: str, new_profile_name: str):
+    console.log("> Running `get-instance-creds` command.. ([blink purple]OK[/blink purple])")
+    Imds(console).get_security_credentials(instance_ip, key_file, user, new_profile_name)
 # [END _get_instance_creds]
 
 # [START _get_user_data]
-def _get_user_data():
-    console.log("Running `get-user-data` command.. ([blink purple]OK[/blink purple])")
+def _get_user_data(instance_ip: str, key_file: str, user: str):
+    console.log("> Running `get-user-data` command.. ([blink purple]OK[/blink purple])")
+    Imds(console).get_user_data(instance_ip, key_file, user)
 # [END _get_user_data]
 
 # [START _mount_snapshot]
 def _mount_snapshot():
-    console.log("Running `mount_snapshot` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `mount_snapshot` command.. ([blink purple]OK[/blink purple])")
 # [END _mount_snapshot]
 
 # [START _get_security_groups]
 def _get_security_groups(session: Session):
-    console.log("Running `get-security-groups` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `get-security-groups` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).get_security_groups()
 # [END _get_security_groups]
 
 # [START _whoami]
 def _whoami(session: Session):
-    console.log("Running `whoami` command.. ([blink purple]OK[/blink purple])")
+    console.log("> Running `whoami` command.. ([blink purple]OK[/blink purple])")
     ident = Sts(session).whoami()
     keys = ["UserId", "Account", "Arn"]
     values = ident.values()
@@ -214,12 +218,12 @@ def get_instance_creds(
         instance_ip: str = Argument(..., help="IP address or Public DNS name of Ec2 instance"),
         key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
         user: str = Argument("ec2-user", help="The SSH user associated with key file"),
-        profile_name: str = Option("awsred", help="Profile name to create after capturing credentials")
+        new_profile_name: str = Option("awsred", help="New AWS profile name to create with credentials")
     ):
     """
     Get instance credentials via Instance Metadata Server (v1|v2)
     """
-    _get_instance_creds(instance_ip, key_file, user, profile_name)
+    _get_instance_creds(instance_ip, key_file, user, new_profile_name)
 # [END get_instance_creds]
 
 # [START get_user_data]
@@ -227,12 +231,12 @@ def get_instance_creds(
 def get_user_data(
     instance_ip: str = Argument(..., help="IP address of Ec2 instance"),
     key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
-    user: str = Argument(..., help="The SSH user associated with key file"),
-    profile: str = Argument(..., help="AWS profile")
+    user: str = Argument(..., help="The SSH user associated with key file")
     ):
     """
     Get an instances user-data script
     """
+    _get_user_data(instance_ip, key_file, user)
 # [END get_user_data]
 
 # [START mount_snapshot]
@@ -270,4 +274,14 @@ def whoami(profile: str = Argument(..., help="AWS profile")):
 # [END whoami]
 
 if __name__ == "__main__":
+    console.print(f"""[red]                                                             .o8            oooo   o8o  
+                                                            "888            `888   `"'  
+ .oooo.   oooo oooo    ooo  .oooo.o oooo d8b  .ooooo.   .oooo888   .ooooo.   888  oooo  
+`P  )88b   `88. `88.  .8'  d88(  "8 `888""8P d88' `88b d88' `888  d88' `"Y8  888  `888  
+ .oP"888    `88..]88..8'   `"Y88b.   888     888ooo888 888   888  888        888   888  
+d8(  888     `888'`888'    o.  )88b  888     888    .o 888   888  888   .o8  888   888  
+`Y888""8o     `8'  `8'     8""888P' d888b    `Y8bod8P' `Y8bod88P" `Y8bod8P' o888o o888o[/red] v{__version__}
+
+                            Author: [yellow]{__author__}[/yellow]
+    """)
     app()

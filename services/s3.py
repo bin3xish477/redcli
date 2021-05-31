@@ -24,7 +24,7 @@ class S3():
             self.console.print(f"Bucket::[red]{bucket}[/red]")
             objects = self.s3_resource.Bucket(bucket).objects.all() 
             if not objects:
-                self.console.print("No content in this S3 bucket.. ([yellow]INFO[/yellow])")
+                self.console.print("> No content in this S3 bucket.. ([yellow]INFO[/yellow])")
                 return
             self.console.print("[underline]Contents[/underline]")
             for obj in objects:
