@@ -1,2 +1,2 @@
-# awspen
-A Python tool to automate common AWS penetration testing techniques
+# redcli
+A cloud penetration testing tool
