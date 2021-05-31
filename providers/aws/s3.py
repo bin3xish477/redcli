@@ -2,13 +2,13 @@ from tabulate import tabulate
 
 class S3():
 
-    def __init__(self, session, console):
+    def __init__(self, session, console) -> None:
         self.s3 = session.client("s3")
         self.s3_resource = session.resource("s3")
         self.console = console
 
     # [START _list_buckets]
-    def _list_buckets(self):
+    def _list_buckets(self) -> list:
         bucket_names = []
         creation_dates = []
         buckets = self.s3.list_buckets()
@@ -20,7 +20,7 @@ class S3():
     # [END _list_buckets]
 
     # [START dump_buckets]
-    def dump_buckets(self, bucket: str):
+    def dump_buckets(self, bucket: str) -> None:
         def get_content(bucket: str):
             self.console.print(f"Bucket::[red]{bucket}[/red]")
             objects = self.s3_resource.Bucket(bucket).objects.all() 
@@ -40,7 +40,7 @@ class S3():
     # [END dump_buckets]
 
     # [START list_acls]
-    def list_acls(self, bucket: str):
+    def list_acls(self, bucket: str) -> None:
         """
         TODO: list acls for specific bucket
         """

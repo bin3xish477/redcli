@@ -5,11 +5,11 @@ from json import loads
 
 class Imds():
 
-  def __init__(self, console):
+  def __init__(self, console) -> None:
     self.console = console
 
   # [START _create_ssh_session]
-  def _create_ssh_session(self, instance_ip: str, key_file: str, user: str):
+  def _create_ssh_session(self, instance_ip: str, key_file: str, user: str) -> None:
     self.ssh = SSHClient()
     k = RSAKey.from_private_key_file(key_file)
     self.ssh.set_missing_host_key_policy(AutoAddPolicy())
@@ -25,7 +25,10 @@ class Imds():
   # [END _create_ssh_session]
 
   # [START get_security_credentials]
-  def get_security_credentials(self, instance_ip: str, key_file: str, user: str, new_profile_name: str):
+  def get_security_credentials(
+      self, instance_ip: str, key_file: str,
+      user: str, new_profile_name: str
+      ) -> None:
     self._create_ssh_session(instance_ip, key_file, user)
 
     # get security credentials using v2 method
@@ -65,7 +68,7 @@ class Imds():
   # [END get_security_credentials]
 
   # [START get_user_data]
-  def get_user_data(self, instance_ip: str, key_file: str, user: str):
+  def get_user_data(self, instance_ip: str, key_file: str, user: str) -> None:
     self._create_ssh_session(instance_ip, key_file, user)
     _, stdout, _ = self.ssh.exec_command(
       "TOKEN=`curl -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600'`" + \
