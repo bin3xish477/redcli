@@ -13,7 +13,6 @@ from services.sts import Sts
 from services.iam import Iam
 from services.ec2 import Ec2
 from services.s3 import S3
-from services.eks import Eks
 from services.imds import Imds
 
 # globals
@@ -75,7 +74,7 @@ def _get_instance_profiles(session: Session):
 # [END _get_instance_profiles]
 
 # [START _list_permissions]
-def _list_permissions(session: Session):
+def _list_iam_permissions(session: Session):
     console.log("> Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
     policies = Iam(session, console).get_policies()
     if not policies:
@@ -122,6 +121,12 @@ def _get_security_groups(session: Session):
     console.log("> Running `get-security-groups` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).get_security_groups()
 # [END _get_security_groups]
+
+# [START _list_s3_acls]
+def _list_s3_acls(session: Session, bucket: str):
+    console.log("> Running `list-s3-acls` command.. ([blink purple]OK[/blink purple])")
+    S3(session, console).list_acls(bucket)
+# [END _list_s3_acls]
 
 # [START _whoami]
 def _whoami(session: Session):
@@ -184,11 +189,11 @@ def get_instance_profiles(profile: str = Argument(..., help="AWS profile")):
 
 # [START list_permissions]
 @app.command()
-def list_permissions(profile: str = Argument(..., help="AWS profile")):
+def list_iam_permissions(profile: str = Argument(..., help="AWS profile")):
     """
     List permissions associated with profile
     """
-    _list_permissions(_create_session(profile))
+    _list_iam_permissions(_create_session(profile))
 # [END list_permissions]
 
 # [START list_buckets]
@@ -239,20 +244,6 @@ def get_user_data(
     _get_user_data(instance_ip, key_file, user)
 # [END get_user_data]
 
-# [START mount_snapshot]
-@app.command()
-def mount_snapshot(
-    az: str = Argument(..., help="The availability zone to create the volume in"),
-    vol_type: str = Argument(..., help="The type of volume to create"),
-    snapshot_id: str = Argument(..., help="The snapshot ID from which to create the volume"),
-    profile: str = Argument(..., help="AWS profile")
-    ):
-    """
-    Create EBS volume from snapshot and mount to instance or to local machine.
-    """
-    _mount_snapshot()
-# [END mount_snapshot]
-
 # [START get_security_groups]
 @app.command()
 def get_security_groups(
@@ -263,6 +254,18 @@ def get_security_groups(
     """
     _get_security_groups(_create_session(profile))
 # [END get_security_groups]
+
+# [START list_s3_acls]
+@app.command()
+def list_s3_acls(
+        bucket: str = Option("", help="Speicific S3 bucket to dump"),
+        profile: str = Argument(..., help="AWS profile") 
+    ):
+    """
+    List all S3 bucket Access Control Lists (ACLs)
+    """
+    _list_s3_acls(_create_session(profile), bucket)
+# [END list_s3_acls]
 
 # [START whoami]
 @app.command()

@@ -1,3 +1,4 @@
+from tabulate import tabulate
 
 class S3():
 
@@ -6,8 +7,8 @@ class S3():
         self.s3_resource = session.resource("s3")
         self.console = console
 
-    # [START list_buckets]
-    def list_buckets(self):
+    # [START _list_buckets]
+    def _list_buckets(self):
         bucket_names = []
         creation_dates = []
         buckets = self.s3.list_buckets()
@@ -16,7 +17,7 @@ class S3():
             bucket_names.append(bucket["Name"])
             creation_dates.append(str(bucket["CreationDate"]))
         return list(zip(bucket_names, creation_dates))
-    # [END list_buckets]
+    # [END _list_buckets]
 
     # [START dump_buckets]
     def dump_buckets(self, bucket: str):
@@ -30,10 +31,31 @@ class S3():
             for obj in objects:
                 self.console.print(' '*2, "\u2022", f"\"{obj.key}\"")
         if not bucket:
-            buckets = self.list_buckets()
+            buckets = self._list_buckets()
             for bucket in buckets:
                 get_content(bucket[0])
                 self.console.print('>'*50, '\n')
         else:
             get_content(bucket)
     # [END dump_buckets]
+
+    # [START list_acls]
+    def list_acls(self, bucket: str):
+        """
+        TODO: list acls for specific bucket
+        """
+        buckets = self._list_buckets()
+        self.console.print("[green]ACLs[/green]")
+        self.console.print("*"*72)
+        for bucket in buckets:
+            bucket = bucket[0]
+            acl = self.s3.get_bucket_acl(
+                Bucket=bucket
+            )
+            self.console.print("[red]Owner[/red]:", acl["Owner"]["DisplayName"])
+            for grant in acl["Grants"]:
+                grantee = grant["Grantee"]["DisplayName"]
+                permissions = grant["Permission"]
+                self.console.print(' '*2, f"[magenta]Grantees[/magenta]: {grantee}")
+                self.console.print(' '*4, f"[green]Permission[/green]: {permissions}\n")
+    # [END list_acls]
