@@ -1,3 +1,7 @@
+"""
+File: imds.py
+Description: contains revelant AWS Instance Metadata functions and actions
+"""
 from os import access
 from os.path import expanduser
 from paramiko import SSHClient, AutoAddPolicy, RSAKey

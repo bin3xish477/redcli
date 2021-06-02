@@ -1,3 +1,7 @@
+"""
+File: iam.py
+Description: contains revelant AWS IAM functions and actions
+"""
 
 class Iam():
 

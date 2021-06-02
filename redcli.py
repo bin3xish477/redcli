@@ -1,6 +1,12 @@
+"""
+File: redcli.py
+Description: contains all program commands and wrapper functions that initialize the
+appropiate AWS or GCP classes to execute commands.
+"""
+
 #!/usr/bin/env python3
 
-# third party
+# third party -------------
 from typer import Typer, echo, Argument, Option
 from typing import List, Optional
 from rich.console import Console
@@ -8,14 +14,19 @@ from tabulate import tabulate
 from boto3.session import Session
 from botocore.exceptions import ProfileNotFound
 
-# internal
+# internal ------------
+
+# aws
 from providers.aws.sts import Sts
 from providers.aws.iam import Iam
 from providers.aws.ec2 import Ec2
 from providers.aws.s3 import S3
 from providers.aws.imds import Imds
 
-# globals
+# gcp
+from providers.gcp.metadata import MetaData
+
+# globals --------------
 aws_app = Typer()
 gcp_app = Typer()
 redcli_app = Typer()

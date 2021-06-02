@@ -1,3 +1,7 @@
+"""
+File: sts.py
+Description: contains revelant AWS STS functions and actions
+"""
 
 class Sts():
 

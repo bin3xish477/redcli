@@ -1,3 +1,8 @@
+"""
+File: ec2.py
+Description: contains revelant AWS EC2 functions and actions
+"""
+
 from botocore.exceptions import ClientError
 from os import mkdir
 from time import sleep

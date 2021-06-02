@@ -1,3 +1,8 @@
+"""
+File: s3.py
+Description: contains revelant AWS S3 functions and actions
+"""
+
 from tabulate import tabulate
 
 class S3():
