@@ -8,7 +8,6 @@ class Iam():
     def __init__(self, session, console) -> None:
         self.iam = session.client("iam")
         self.console = console
-        self.admin_policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
 
   # [START get_policies]
     def get_policies(self) -> list:
@@ -21,7 +20,3 @@ class Iam():
         return list(zip(policy_name, policy_arns))
   # [END get_policies]
     
-  # [START create_user]
-    def create_user(self) -> None:
-        pass
-  # [END create_user]

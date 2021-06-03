@@ -1,13 +1,13 @@
 help:
-	python awsredcli.py --help
+	python3 redcli.py --help
 
 clean:
-	rm keys
+	rm ./keys
 
-docker-test:
+docker-run:
 	docker build \
-	--tag=awsredcli \
-	--file=./Dockerfile
-	docker run \
-	--name=awsredcli
-	awsredcli
+	--tag=redcli .\
+	&& docker run \
+	--name=redcli \
+	-it --entrypoint=/bin/bash \
+	redcli

@@ -7,7 +7,7 @@ from os.path import expanduser
 from paramiko import SSHClient, AutoAddPolicy, RSAKey
 from json import loads
 
-class Imds():
+class AwsImds():
 
   def __init__(self, console) -> None:
     self.console = console
@@ -28,8 +28,8 @@ class Imds():
       exit(1)
   # [END _create_ssh_session]
 
-  # [START get_security_credentials]
-  def get_security_credentials(
+  # [START get_instance_access_token]
+  def get_instance_access_token(
       self, instance_ip: str, key_file: str,
       user: str, new_profile_name: str
       ) -> None:
@@ -69,7 +69,7 @@ class Imds():
       aws_creds_file.write(f"aws_secret_access_key = {secret_access_key}\n")
       aws_creds_file.write(f"aws_session_token = {session_token}")
     self.console.print(f"\nCat ~/.aws/credentials file to confirm creds have been loaded correctly.. ([yellow]CONFIRM[/yellow])")
-  # [END get_security_credentials]
+  # [END get_instance_access_token]
 
   # [START get_user_data]
   def get_user_data(self, instance_ip: str, key_file: str, user: str) -> None:

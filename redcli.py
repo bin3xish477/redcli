@@ -21,17 +21,22 @@ from providers.aws.sts import Sts
 from providers.aws.iam import Iam
 from providers.aws.ec2 import Ec2
 from providers.aws.s3 import S3
-from providers.aws.imds import Imds
+from providers.aws.imds import AwsImds
 
 # gcp
-from providers.gcp.metadata import MetaData
+from providers.gcp.imds import GcpImds
+
+# azure 
+from providers.azure.imds import AzImds
 
 # globals --------------
-aws_app = Typer()
-gcp_app = Typer()
+aws = Typer()
+gcp = Typer()
+azure = Typer()
 redcli_app = Typer()
-redcli_app.add_typer(aws_app, name="aws")
-redcli_app.add_typer(gcp_app, name="gcp")
+redcli_app.add_typer(aws, name="aws")
+redcli_app.add_typer(gcp, name="gcp")
+redcli_app.add_typer(azure, name="azure")
 console = Console()
 tbl_fmt = "fancy_grid"
 
@@ -58,7 +63,8 @@ def _create_session(profile: str):
 # ************* MAIN **************
 # *********************************
 
-# ************** AWS **************
+# ------------ AWS ---------------
+
 # [START _user_data_rev_shell]
 def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhost: str, rport: int):
     console.log("> Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
@@ -115,22 +121,17 @@ def _dump_buckets(session: Session, bucket: str):
     S3(session, console).dump_buckets(bucket)
 # [END _dump_buckets]
 
-# [START _get_instance_creds]
-def _get_instance_creds(instance_ip: str, key_file: str, user: str, new_profile_name: str):
-    console.log("> Running `get-instance-creds` command.. ([blink purple]OK[/blink purple])")
-    Imds(console).get_security_credentials(instance_ip, key_file, user, new_profile_name)
-# [END _get_instance_creds]
+# [START _get_instance_access_token]
+def _get_instance_access_token(instance_ip: str, key_file: str, user: str, new_profile_name: str):
+    console.log("> Running `get-instance-access-token` command.. ([blink purple]OK[/blink purple])")
+    AwsImds(console).get_instance_access_token(instance_ip, key_file, user, new_profile_name)
+# [END _get_instance_access_token]
 
 # [START _get_user_data]
 def _get_user_data(instance_ip: str, key_file: str, user: str):
     console.log("> Running `get-user-data` command.. ([blink purple]OK[/blink purple])")
-    Imds(console).get_user_data(instance_ip, key_file, user)
+    AwsImds(console).get_user_data(instance_ip, key_file, user)
 # [END _get_user_data]
-
-# [START _mount_snapshot]
-def _mount_snapshot():
-    console.log("> Running `mount_snapshot` command.. ([blink purple]OK[/blink purple])")
-# [END _mount_snapshot]
 
 # [START _get_security_groups]
 def _get_security_groups(session: Session):
@@ -154,19 +155,29 @@ def _whoami(session: Session):
     console.print(ident_tbl)
 # [END _whoami]
 
+# -------------- GCP --------------
 
-# ************** GCP **************
-def _get_instance_token():
+# [START get_instance_access_token]
+def _get_instance_access_token():
     pass
+# [END get_instance_access_token]
+
+# ------------- Azure -------------
+
+# [START get_instance_access_token]
+def get_instance_access_token(os: str):
+    pass
+# [END get_instance_access_token]
 
 
 # *********************************
 # ******* REDCLI COMMANDS *********
 # *********************************
 
-# ************** AWS **************
+# ------------- AWS ---------------
+
 # [START user_data_rev_shell]
-@aws_app.command()
+@aws.command()
 def user_data_rev_shell(
         ami_id: str = Option("ami-00a208c7cdba991ea", help="The ID of the AMI"),
         instance_type: str = Option("t2.micro", help="The instance type to create"),
@@ -182,7 +193,7 @@ def user_data_rev_shell(
 # [END user_data_rev_shell]
 
 # [START launch_ec2_with_instance_profile]
-@aws_app.command()
+@aws.command()
 def launch_ec2_with_instance_profile(
         instance_profile_arn: str = Argument(..., help="Instance profile ARN"),
         ami_id: str = Option("ami-00a208c7cdba991ea", help="The ID of the AMI"),
@@ -203,7 +214,7 @@ def launch_ec2_with_instance_profile(
 # [END launch_ec2_with_instance_profile]
 
 # [START get_instance_profiles]
-@aws_app.command()
+@aws.command()
 def get_instance_profiles(
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile")
@@ -215,7 +226,7 @@ def get_instance_profiles(
 # [END get_instance_profiles]
 
 # [START list_permissions]
-@aws_app.command()
+@aws.command()
 def list_iam_permissions(profile: str = Argument(..., help="AWS profile")):
     """
     List permissions associated with profile
@@ -224,7 +235,7 @@ def list_iam_permissions(profile: str = Argument(..., help="AWS profile")):
 # [END list_permissions]
 
 # [START list_buckets]
-@aws_app.command()
+@aws.command()
 def list_buckets(profile: str = Argument(...,help="AWS profile")):
     """
     List all S3 buckets if allowed
@@ -233,9 +244,9 @@ def list_buckets(profile: str = Argument(...,help="AWS profile")):
 # [END list_buckets]
 
 # [START dump_buckets]
-@aws_app.command()
+@aws.command()
 def dump_buckets(
-        bucket: str = Option("", help="Speicific S3 bucket to dump"),
+        bucket: str = Option("", help="Specific S3 bucket to dump"),
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile"),
     ):
@@ -245,9 +256,9 @@ def dump_buckets(
     _dump_buckets(_create_session(profile), bucket)
 # [END dump_buckets]
 
-# [START get_instance_creds]
-@aws_app.command()
-def get_instance_creds(
+# [START get_instance_access_token]
+@aws.command()
+def get_instance_access_token(
         instance_ip: str = Argument(..., help="IP address or Public DNS name of Ec2 instance"),
         key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
         user: str = Argument("ec2-user", help="The SSH user associated with key file"),
@@ -256,11 +267,11 @@ def get_instance_creds(
     """
     Get instance credentials via Instance Metadata Server (v1|v2)
     """
-    _get_instance_creds(instance_ip, key_file, user, new_profile_name)
-# [END get_instance_creds]
+    _get_instance_access_token(instance_ip, key_file, user, new_profile_name)
+# [END get_instance_access_token]
 
 # [START get_user_data]
-@aws_app.command()
+@aws.command()
 def get_user_data(
     instance_ip: str = Argument(..., help="IP address of Ec2 instance"),
     key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
@@ -273,7 +284,7 @@ def get_user_data(
 # [END get_user_data]
 
 # [START get_security_groups]
-@aws_app.command()
+@aws.command()
 def get_security_groups(
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile") 
@@ -285,7 +296,7 @@ def get_security_groups(
 # [END get_security_groups]
 
 # [START list_s3_acls]
-@aws_app.command()
+@aws.command()
 def list_s3_acls(
         bucket: str = Option("", help="Speicific S3 bucket to dump"),
         region: str = Argument(..., help="AWS region"),
@@ -298,7 +309,7 @@ def list_s3_acls(
 # [END list_s3_acls]
 
 # [START whoami]
-@aws_app.command()
+@aws.command()
 def whoami(profile: str = Argument(..., help="AWS profile")):
     """
     Get profile identity
@@ -306,11 +317,23 @@ def whoami(profile: str = Argument(..., help="AWS profile")):
     _whoami(_create_session(profile))
 # [END whoami]
 
-# ************** GCP ****************
-@gcp_app.command()
-def get_instance_token(self):
-    pass
 
+# ------------- GCP --------------
+
+# [START get_instance_access_token]
+@gcp.command()
+def get_instance_access_token():
+    pass
+# [END get_instance_access_token]
+
+
+# ------------ Azure ---------------
+
+# [START get_instance_access_token]
+@azure.command()
+def get_instance_access_token():
+    pass
+# [END get_instance_access_token]
 
 if __name__ == "__main__":
     console.print(f"""[red]\
