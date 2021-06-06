@@ -222,7 +222,7 @@ def list_iam_policies(profile: str = Argument(..., help="AWS profile")) -> None:
 @aws.command()
 def list_buckets(profile: str = Argument(...,help="AWS profile")) -> None:
     """
-    List all S3 buckets if allowed
+    List all S3 buckets
     """
     _list_buckets(_create_session(profile))
 # [END list_buckets]
@@ -295,7 +295,7 @@ def list_s3_acls(
 @aws.command()
 def whoami(profile: str = Argument(..., help="AWS profile")) -> None:
     """
-    Get IAM identity associated with tokens
+    Get IAM identity associated with profile
     """
     _whoami(_create_session(profile))
 # [END whoami]
