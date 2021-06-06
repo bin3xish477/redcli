@@ -1,8 +1,6 @@
 # redcli
 
-`redcli` is a cloud penetration testing tool that currently contains some
-commands related to AWS pentesting, however, I have already started developing v2 which will also include GCP and Azure penetration testing
-operations.
+`redcli` is a cloud penetration testing tool that currently contains commands related to AWS pentesting. I have already started developing v2 which will also include GCP and Azure penetration testing commands.
 
 ### AWS Help Menu
 

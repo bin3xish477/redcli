@@ -148,7 +148,7 @@ def _whoami(session: Session) -> None:
 # [START _check_mfa]
 def _check_mfa(session: Session) -> None:
     console.log("> Running `check-mfa` command.. ([blink purple]OK[/blink purple])")
-    if Iam(session, console).check_mfa() -> None:
+    if Iam(session, console).check_mfa():
         console.print("MFA is ([red]ENABLED[/red])")
     else:
         console.print("MFA is not enabled or was not able to be checked.. ([green]INFO[/green])")
