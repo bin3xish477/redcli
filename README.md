@@ -1,9 +1,11 @@
 # redcli
+
 `redcli` is a cloud penetration testing tool that currently contains some
 commands related to AWS pentesting, however, I have already started developing v2 which will also include GCP and Azure penetration testing
 operations.
 
 ### AWS Help Menu
+
 ```bash
 % python redcli.py aws --help          
 
@@ -43,13 +45,18 @@ Commands:
 ```
 
 # Run
+
+> Dependencies: python3, python3-pip
+
 ```bash
 git clone https://github.com/binexisHATT/redcli.git
 cd redcli
+pip3 install -r requirements.txt
 python3 redcli.py aws --help
 ```
 
 # Run with Docker
+
 ```bash
 git clone https://github.com/binexisHATT/redcli.git
 docker build --tag=redcli .
