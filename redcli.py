@@ -23,20 +23,10 @@ from providers.aws.ec2 import Ec2
 from providers.aws.s3 import S3
 from providers.aws.imds import AwsImds
 
-# gcp
-from providers.gcp.imds import GcpImds
-
-# azure 
-from providers.azure.imds import AzImds
-
 # globals --------------
 aws = Typer()
-gcp = Typer()
-azure = Typer()
 redcli_app = Typer()
 redcli_app.add_typer(aws, name="aws")
-redcli_app.add_typer(gcp, name="gcp")
-redcli_app.add_typer(azure, name="azure")
 console = Console()
 tbl_fmt = "fancy_grid"
 
@@ -95,15 +85,15 @@ def _get_instance_profiles(session: Session):
     console.print(instance_profile_tbl)
 # [END _get_instance_profiles]
 
-# [START _list_permissions]
-def _list_iam_permissions(session: Session):
+# [START _list_policies]
+def _list_iam_policies(session: Session):
     console.log("> Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
     policies = Iam(session, console).get_policies()
     if not policies:
         console.print("> No policies were found.. ([yellow]INFO[/yellow])")
     policy_tbl = tabulate(policies, headers=["PolicyName", "PolicyARN"], tablefmt=tbl_fmt)
     console.print(policy_tbl)
-# [END _list_permissions]
+# [END _list_policies]
 
 # [START _list_buckets]
 def _list_buckets(session: Session):
@@ -146,7 +136,7 @@ def _list_s3_acls(session: Session, bucket: str):
 # [END _list_s3_acls]
 
 # [START _whoami]
-def _whoami(session: Session):
+def _whoami(session: Session) -> None:
     console.log("> Running `whoami` command.. ([blink purple]OK[/blink purple])")
     ident = Sts(session).whoami()
     keys = ["UserId", "Account", "Arn"]
@@ -155,20 +145,14 @@ def _whoami(session: Session):
     console.print(ident_tbl)
 # [END _whoami]
 
-# -------------- GCP --------------
-
-# [START get_instance_access_token]
-def _get_instance_access_token():
-    pass
-# [END get_instance_access_token]
-
-# ------------- Azure -------------
-
-# [START get_instance_access_token]
-def get_instance_access_token(os: str):
-    pass
-# [END get_instance_access_token]
-
+# [START _check_mfa]
+def _check_mfa(session: Session) -> None:
+    console.log("> Running `check-mfa` command.. ([blink purple]OK[/blink purple])")
+    if Iam(session, console).check_mfa():
+        console.print("MFA is ([red]ENABLED[/red])")
+    else:
+        console.print("MFA is not enabled or was not able to be checked.. ([green]INFO[/green])")
+# [END _check_mfa]
 
 # *********************************
 # ******* REDCLI COMMANDS *********
@@ -225,14 +209,14 @@ def get_instance_profiles(
     _get_instance_profiles(_create_session(profile))
 # [END get_instance_profiles]
 
-# [START list_permissions]
+# [START list_policies]
 @aws.command()
-def list_iam_permissions(profile: str = Argument(..., help="AWS profile")):
+def list_iam_policies(profile: str = Argument(..., help="AWS profile")):
     """
     List permissions associated with profile
     """
-    _list_iam_permissions(_create_session(profile))
-# [END list_permissions]
+    _list_iam_policies(_create_session(profile))
+# [END list_policies]
 
 # [START list_buckets]
 @aws.command()
@@ -299,7 +283,6 @@ def get_security_groups(
 @aws.command()
 def list_s3_acls(
         bucket: str = Option("", help="Speicific S3 bucket to dump"),
-        region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile") 
     ):
     """
@@ -312,28 +295,20 @@ def list_s3_acls(
 @aws.command()
 def whoami(profile: str = Argument(..., help="AWS profile")):
     """
-    Get profile identity
+    Get IAM identity associated with tokens
     """
     _whoami(_create_session(profile))
 # [END whoami]
 
+# [START check_mfa]
+@aws.command()
+def check_mfa(profile: str = Argument(..., help="AWS profile")):
+    """
+    Check if MFA is enabled for the specified profile
+    """
+    _check_mfa(_create_session(profile))
 
-# ------------- GCP --------------
-
-# [START get_instance_access_token]
-@gcp.command()
-def get_instance_access_token():
-    pass
-# [END get_instance_access_token]
-
-
-# ------------ Azure ---------------
-
-# [START get_instance_access_token]
-@azure.command()
-def get_instance_access_token():
-    pass
-# [END get_instance_access_token]
+# [END check_mfa]
 
 if __name__ == "__main__":
     console.print(f"""[red]\

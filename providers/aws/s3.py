@@ -16,7 +16,11 @@ class S3():
     def _list_buckets(self) -> list:
         bucket_names = []
         creation_dates = []
-        buckets = self.s3.list_buckets()
+        try:
+            buckets = self.s3.list_buckets()
+        except:
+            self.console.log("An error occured listing S3 buckets.. ([red]ERROR[/red])")
+            return
         del buckets["ResponseMetadata"]
         for bucket in buckets["Buckets"]:
             bucket_names.append(bucket["Name"])
@@ -28,7 +32,11 @@ class S3():
     def dump_buckets(self, bucket: str) -> None:
         def get_content(bucket: str):
             self.console.print(f"Bucket::[red]{bucket}[/red]")
-            objects = self.s3_resource.Bucket(bucket).objects.all() 
+            try:
+                objects = self.s3_resource.Bucket(bucket).objects.all() 
+            except:
+                self.console.log("Unable to list bucket contents.. ([red]ERROR[/red])")
+                exit(1)
             if not objects:
                 self.console.print("> No content in this S3 bucket.. ([yellow]INFO[/yellow])")
                 return
@@ -49,18 +57,37 @@ class S3():
         """
         TODO: list acls for specific bucket
         """
-        buckets = self._list_buckets()
-        self.console.print("[green]ACLs[/green]")
-        self.console.print("*"*72)
-        for bucket in buckets:
-            bucket = bucket[0]
-            acl = self.s3.get_bucket_acl(
-                Bucket=bucket
-            )
+        if bucket:
+            self.console.print(f"ACL for (bucket::[#ffa500]{bucket}[/#ffa500])")
+            try:
+                acl = self.s3.get_bucket_acl(
+                    Bucket=bucket
+                )
+            except:
+                self.console.log("Unable to retrive access control list for bucket: {bucket} ([red]ERROR[/red])")
+                return
             self.console.print("[red]Owner[/red]:", acl["Owner"]["DisplayName"])
             for grant in acl["Grants"]:
                 grantee = grant["Grantee"]["DisplayName"]
                 permissions = grant["Permission"]
-                self.console.print(' '*2, f"[magenta]Grantees[/magenta]: {grantee}")
-                self.console.print(' '*4, f"[green]Permission[/green]: {permissions}\n")
+                self.console.print(f" [magenta]Grantees[/magenta]: {grantee}")
+                self.console.print(f"  [green]Permissions[/green]: {permissions}\n")
+                return
+        buckets = self._list_buckets()
+        for bucket in buckets:
+            bucket = bucket[0]
+            self.console.print(f"ACL for (bucket::[#ffa500]{bucket}[/#ffa500])")
+            try:
+                acl = self.s3.get_bucket_acl(
+                    Bucket=bucket
+                )
+            except:
+                self.console.log("Unable to retrive access control list for bucket: {bucket}")
+                return
+            self.console.print("[red]Owner[/red]:", acl["Owner"]["DisplayName"])
+            for grant in acl["Grants"]:
+                grantee = grant["Grantee"]["DisplayName"]
+                permissions = grant["Permission"]
+                self.console.print(f" [magenta]Grantees[/magenta]: {grantee}")
+                self.console.print(f"  [green]Permissions[/green]: {permissions}\n")
     # [END list_acls]

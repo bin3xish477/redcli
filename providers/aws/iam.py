@@ -9,7 +9,7 @@ class Iam():
         self.iam = session.client("iam")
         self.console = console
 
-  # [START get_policies]
+    # [START get_policies]
     def get_policies(self) -> list:
         policy_name = []
         policy_arns = []
@@ -18,5 +18,17 @@ class Iam():
                 policy_name.append(policy["PolicyName"])
                 policy_arns.append(policy["PolicyArn"])
         return list(zip(policy_name, policy_arns))
-  # [END get_policies]
+    # [END get_policies]
+
+    # [START check_mfa]
+    def check_mfa(self) -> bool:
+        try:
+            if self.iam.get_account_summary()["SummaryMap"]["AccountMFAEnabled"]:
+                return True
+            else:
+                return False
+        except:
+            self.console.log("Unabled to retrieve MFA information.. ([red]ERROR[/red])")
+            return
+    # [END check_mfa]
     
