@@ -39,7 +39,7 @@ __author__  = "binexisHATT"
 # *********************************
 
 # [START _create_session]
-def _create_session(profile: str):
+def _create_session(profile: str) -> None:
     try:
         session = Session(profile_name=profile)
     except ProfileNotFound:
@@ -56,7 +56,7 @@ def _create_session(profile: str):
 # ------------ AWS ---------------
 
 # [START _user_data_rev_shell]
-def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhost: str, rport: int):
+def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhost: str, rport: int) -> None:
     console.log("> Running `user-data-rev-shell` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).user_data_rev_shell(ami_id, instance_type, rhost, rport)
 # [END _user_data_rev_shell]
@@ -65,7 +65,7 @@ def _user_data_rev_shell(session: Session, ami_id: str, instance_type: str, rhos
 def _launch_ec2_with_instance_profile(
     session: Session, key_name: str, ami_id: str, instance_profile_arn: str,
     security_group_ids: list, subnet_id: str, instance_type: str
-    ):
+    ) -> None:
     console.log("> Running `launch-ec2-with-instance-profile` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).launch_ec2_with_instance_profile(
         key_name=key_name, ami_id=ami_id, security_group_ids=security_group_ids,
@@ -75,7 +75,7 @@ def _launch_ec2_with_instance_profile(
 # [END _launch_ec2_with_instance_profile]
 
 # [START _get_instance_profiles]
-def _get_instance_profiles(session: Session):
+def _get_instance_profiles(session: Session) -> None:
     console.log("> Running `get-instance-profiles` command.. ([blink purple]OK[/blink purple])")
     instance_profiles = Ec2(session, console).get_instance_profiles()
     if not instance_profiles:
@@ -86,7 +86,7 @@ def _get_instance_profiles(session: Session):
 # [END _get_instance_profiles]
 
 # [START _list_policies]
-def _list_iam_policies(session: Session):
+def _list_iam_policies(session: Session) -> None:
     console.log("> Running `ls-perms` command.. ([blink purple]OK[/blink purple])")
     policies = Iam(session, console).get_policies()
     if not policies:
@@ -96,7 +96,7 @@ def _list_iam_policies(session: Session):
 # [END _list_policies]
 
 # [START _list_buckets]
-def _list_buckets(session: Session):
+def _list_buckets(session: Session) -> None:
     console.log("> Running `ls-buckets` command.. ([blink purple]OK[/blink purple])")
     buckets = S3(session, console).list_buckets()
     if not buckets:
@@ -106,31 +106,31 @@ def _list_buckets(session: Session):
 # [END _list_buckets]
 
 # [START _dump_buckets]
-def _dump_buckets(session: Session, bucket: str):
+def _dump_buckets(session: Session, bucket: str) -> None:
     console.log("> Running `dump-buckets` command.. ([blink purple]OK[/blink purple])")
     S3(session, console).dump_buckets(bucket)
 # [END _dump_buckets]
 
 # [START _get_instance_access_token]
-def _get_instance_access_token(instance_ip: str, key_file: str, user: str, new_profile_name: str):
+def _get_instance_access_token(instance_ip: str, key_file: str, user: str, new_profile_name: str) -> None:
     console.log("> Running `get-instance-access-token` command.. ([blink purple]OK[/blink purple])")
     AwsImds(console).get_instance_access_token(instance_ip, key_file, user, new_profile_name)
 # [END _get_instance_access_token]
 
 # [START _get_user_data]
-def _get_user_data(instance_ip: str, key_file: str, user: str):
+def _get_user_data(instance_ip: str, key_file: str, user: str) -> None:
     console.log("> Running `get-user-data` command.. ([blink purple]OK[/blink purple])")
     AwsImds(console).get_user_data(instance_ip, key_file, user)
 # [END _get_user_data]
 
 # [START _get_security_groups]
-def _get_security_groups(session: Session):
+def _get_security_groups(session: Session) -> None:
     console.log("> Running `get-security-groups` command.. ([blink purple]OK[/blink purple])")
     Ec2(session, console).get_security_groups()
 # [END _get_security_groups]
 
 # [START _list_s3_acls]
-def _list_s3_acls(session: Session, bucket: str):
+def _list_s3_acls(session: Session, bucket: str) -> None:
     console.log("> Running `list-s3-acls` command.. ([blink purple]OK[/blink purple])")
     S3(session, console).list_acls(bucket)
 # [END _list_s3_acls]
@@ -148,7 +148,7 @@ def _whoami(session: Session) -> None:
 # [START _check_mfa]
 def _check_mfa(session: Session) -> None:
     console.log("> Running `check-mfa` command.. ([blink purple]OK[/blink purple])")
-    if Iam(session, console).check_mfa():
+    if Iam(session, console).check_mfa() -> None:
         console.print("MFA is ([red]ENABLED[/red])")
     else:
         console.print("MFA is not enabled or was not able to be checked.. ([green]INFO[/green])")
@@ -169,7 +169,7 @@ def user_data_rev_shell(
         rport: int=Option(7777, help="The remote attacker's listening port"),
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile")
-    ):
+    ) -> None:
     """
     Obtain a reverse shell via user-data script
     """
@@ -187,7 +187,7 @@ def launch_ec2_with_instance_profile(
         security_group_ids: Optional[List[str]] = Option(None, help="The security group ID's to attach to the new instance"), 
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile")
-    ):
+    ) -> None:
     """
     Launch an Ec2 instance and attach specified instance profile
     """
@@ -202,7 +202,7 @@ def launch_ec2_with_instance_profile(
 def get_instance_profiles(
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile")
-    ):
+    ) -> None:
     """
     List all instance profiles
     """
@@ -211,7 +211,7 @@ def get_instance_profiles(
 
 # [START list_policies]
 @aws.command()
-def list_iam_policies(profile: str = Argument(..., help="AWS profile")):
+def list_iam_policies(profile: str = Argument(..., help="AWS profile")) -> None:
     """
     List permissions associated with profile
     """
@@ -220,7 +220,7 @@ def list_iam_policies(profile: str = Argument(..., help="AWS profile")):
 
 # [START list_buckets]
 @aws.command()
-def list_buckets(profile: str = Argument(...,help="AWS profile")):
+def list_buckets(profile: str = Argument(...,help="AWS profile")) -> None:
     """
     List all S3 buckets if allowed
     """
@@ -233,7 +233,7 @@ def dump_buckets(
         bucket: str = Option("", help="Specific S3 bucket to dump"),
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile"),
-    ):
+    ) -> None:
     """
     Dump content for all S3 buckets
     """
@@ -247,7 +247,7 @@ def get_instance_access_token(
         key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
         user: str = Argument("ec2-user", help="The SSH user associated with key file"),
         new_profile_name: str = Option("awsred", help="New AWS profile name to create with credentials")
-    ):
+    ) -> None:
     """
     Get instance credentials via Instance Metadata Server (v1|v2)
     """
@@ -260,7 +260,7 @@ def get_user_data(
     instance_ip: str = Argument(..., help="IP address of Ec2 instance"),
     key_file: str = Argument(..., help="SSH key file for Ec2 instance"),
     user: str = Argument(..., help="The SSH user associated with key file")
-    ):
+    ) -> None:
     """
     Get an instances user-data script
     """
@@ -272,7 +272,7 @@ def get_user_data(
 def get_security_groups(
         region: str = Argument(..., help="AWS region"),
         profile: str = Argument(..., help="AWS profile") 
-    ):
+    ) -> None:
     """
     List all Ec2 instances security groups
     """
@@ -284,7 +284,7 @@ def get_security_groups(
 def list_s3_acls(
         bucket: str = Option("", help="Speicific S3 bucket to dump"),
         profile: str = Argument(..., help="AWS profile") 
-    ):
+    ) -> None:
     """
     List all S3 bucket Access Control Lists (ACLs)
     """
@@ -293,7 +293,7 @@ def list_s3_acls(
 
 # [START whoami]
 @aws.command()
-def whoami(profile: str = Argument(..., help="AWS profile")):
+def whoami(profile: str = Argument(..., help="AWS profile")) -> None:
     """
     Get IAM identity associated with tokens
     """
@@ -302,7 +302,7 @@ def whoami(profile: str = Argument(..., help="AWS profile")):
 
 # [START check_mfa]
 @aws.command()
-def check_mfa(profile: str = Argument(..., help="AWS profile")):
+def check_mfa(profile: str = Argument(..., help="AWS profile")) -> None:
     """
     Check if MFA is enabled for the specified profile
     """
