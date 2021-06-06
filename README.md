@@ -57,6 +57,8 @@ python3 redcli.py aws --help
 
 # Run with Docker
 
+> Dependencies: docker.io
+
 ```bash
 git clone https://github.com/binexisHATT/redcli.git
 docker build --tag=redcli .
