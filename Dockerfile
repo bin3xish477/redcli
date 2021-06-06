@@ -1,6 +1,11 @@
 FROM ubuntu:latest
 
-RUN mkdir awspen
-COPY * awspen
+RUN apt update -y
+RUN apt install python3 python3-pip -y
 
-CMD ["python", "awspen.py", "-h" ]
+RUN mkdir /redcli
+COPY . /redcli
+WORKDIR /redcli
+RUN pip install -r /redcli/requirements.txt
+
+CMD ["python3", "redcli.py", "aws", "--help" ]

@@ -42,3 +42,17 @@ Commands:
   whoami                          Get IAM identity associated with tokens
 ```
 
+# Run
+```bash
+git clone https://github.com/binexisHATT/redcli.git
+cd redcli
+python3 redcli.py aws --help
+```
+
+# Run with Docker
+```bash
+git clone https://github.com/binexisHATT/redcli.git
+docker build --tag=redcli .
+docker run -it --entrypoint=/bin/bash redcli
+python3 redcli.py aws --help
+```
