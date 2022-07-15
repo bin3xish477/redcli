@@ -1,6 +1,6 @@
 # redcli
 
-`redcli` is an AWS cloud penetration testing tool.
+`redcli` is an AWS cloud penetration testing tool I created when taking SANS SEC588: Cloud Penetrating Testing course.
 
 ![whoami](images/redcli-whoami.png)
 
